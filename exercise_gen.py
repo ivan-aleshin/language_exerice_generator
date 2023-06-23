@@ -7,18 +7,12 @@ import spacy
 
 
 class ExercieseGenerator:
+    nlp = spacy.load('en_core_web_sm')
+
     def __init__(self, filename: str, encoding: str = 'utf-8'):
         # Reading file & splitting into blocks
-        with open(filename, 'rt', encoding=encoding) as file:
-            blocks = [re.sub('"', '', line).strip() for line in file.readlines()
-                      if line.strip()]
-
-        block_lengths = list(map(lambda x: len(ExercieseGenerator.split_blocks(x)), blocks))
-        self.text_data = pd.DataFrame(zip(blocks, block_lengths), columns=['blocks', 'block_length'])
-        self.text_data['lines'] = self.text_data['blocks'].apply(ExercieseGenerator.split_blocks)
-        self.text_data.explode('lines').reset_index()
-        self.text_data['lines'] = self.text_data['lines'].apply(lambda x: x[0])
-        self.text_data['lines_length'] = self.text_data['lines'].apply(lambda x: len(x.split()))
+        self.text_data = ExercieseGenerator.text_to_dataset(filename)
+        self.text_data = ExercieseGenerator.explode_dataset(self.text_data)
 
     def generate(self, max_num: int = 10):
         pass
@@ -27,8 +21,31 @@ class ExercieseGenerator:
         pass
 
     @staticmethod
-    def split_blocks(block):
-        sentences = re.split(r'[.!?]', block)
-        sentences = map(str.strip, sentences)
-        sentences = list(filter(lambda x: x, sentences))
-        return sentences
+    def split_blocks(block: str):
+        """
+        Returns splitted block into separate sentences
+        """
+        doc = nlp(block)
+
+        return [sent.text.strip() for sent in doc.sents]
+
+    @staticmethod
+    def text_to_dataset(filename: str):
+        """
+        Returns dataset with text splitted into paragraphs (blocks) in first column
+        and length of each block in second one.
+        """
+
+        with open(filename, 'rt') as file:
+            text = file.read()
+            blocks = [block.strip() for block in text.split('\n') if block.strip()]
+            block_lengths = list(map(lambda x: len(ExercieseGenerator.split_blocks(x)), blocks))
+
+        return pd.DataFrame(zip(blocks, block_lengths), columns=['block', 'block_length'])
+
+    @staticmethod
+    def explode_dataset(dataset):
+        dataset['line'] = dataset['block'].apply(ExercieseGenerator.split_blocks)
+        dataset = dataset.explode('line').reset_index()
+        dataset['line_length'] = dataset['line'].apply(lambda x: len(x.split()))
+        return dataset
