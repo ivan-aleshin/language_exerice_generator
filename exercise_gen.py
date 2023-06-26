@@ -4,6 +4,8 @@ import pandas as pd
 import gensim.downloader as api
 import spacy
 import translators as ts
+import requests
+from lang_proj.tokens import HUGGINGFACE_API_TOKEN
 
 
 class ExerciseGenerator:
@@ -65,7 +67,7 @@ class ExerciseGenerator:
 
     def choose_sentence(self, option=None, limits=(3, 15)):
         if option is None:
-            option = random.chose(ExerciseGenerator.tags_)
+            option = random.choice(ExerciseGenerator.tags_)
         index_tag = self.text_data[(self.text_data['part_of_word'].str.contains(option))].index
         index_limit = self.text_data[(self.text_data['line_length'] >= limits[0]) &
                                      (self.text_data['line_length'] <= limits[1])].index
@@ -106,7 +108,10 @@ class ExerciseGenerator:
     def gen_shuffle(self, translation=True):
         if translation:
             sentence = self.choose_sentence(limits=(7, 12))
-            sentence_trans = ExerciseGenerator.translate(sentence)
+            try:
+                sentence_trans = ExerciseGenerator.translate(sentence)
+            except:
+                gen_shuffle(self, translation=False)
             right_ans, shuffled = ExerciseGenerator.shuffle(sentence)
             print('Choose the right order of words')
             print(sentence_trans)
@@ -133,3 +138,22 @@ class ExerciseGenerator:
                                  translator='google',
                                  from_language='en',
                                  to_language='ru')
+
+    def gen_question(self):
+        sentence = self.choose_sentence(option='NOUN', limits=(7, 12))
+        target_word = random.choice([str(token) for token in ExerciseGenerator.nlp(sentence) if token.pos_ == 'NOUN'])
+        question = ExerciseGenerator.huggin_question(sentence, target_word)
+        print(sentence, question, 'Type only one word in lower case', target_word.lower(), sep='\n')
+
+
+    def long_read(self):
+        # same as gen_question but with options (multiple?) and longer text
+        pass
+
+    @staticmethod
+    def huggin_question(sentence, answer):
+        API_URL = "https://api-inference.huggingface.co/models/mrm8488/t5-base-finetuned-question-generation-ap"
+        headers = {"Authorization": f"Bearer {HUGGINGFACE_API_TOKEN}"}
+        text = f'answer: {answer} context: {sentence}'
+        response = requests.post(API_URL, headers=headers, json={"inputs": text,})
+        return response.json()[0]['generated_text']
