@@ -6,13 +6,18 @@ import spacy
 import translators as ts
 import requests
 from lang_proj.tokens import HUGGINGFACE_API_TOKEN
-
+import math
 
 class ExerciseGenerator:
     _nlp = spacy.load('en_core_web_sm')
     _tags = ['ADJ', 'DET', 'NOUN', 'VERB']
+    _exercises = {'question': 'gen_question()',
+                  'shuffle_with_translation': 'gen_shuffle(translation=True)',
+                  'shuffle_no_translation': 'gen_shuffle(translation=False)',
+                  'missings_with_options': 'gen_missings(options=True)',
+                  'missings_no_options': 'gen_missings(options=False)'}
 
-    def __init__(self, filename: str, encoding: str = 'utf-8'):
+    def __init__(self, filename: str):
         self.word_vectors = api.load("glove-wiki-gigaword-100")
         self.text_data = ExerciseGenerator.text_to_dataset(filename)
 
@@ -188,7 +193,17 @@ class ExerciseGenerator:
         response = requests.post(API_URL, headers=headers, json={"inputs": text,})
         return response.json()[0]['generated_text']
 
-    def output(self, n_exercises: int=10, types=None):
-        output = {}
+    def output(self, n_exercises: int=10, types='all', randomized=True):
+        if types =='all':
+            types = list(self._exercises.keys())
+        types = types * math.ceil(n_exercises / len(types))
+
+        if randomized:
+            types = random.choices(types, k=n_exercises)
+        else:
+            types = types[:n_exercises]
+
+        output = []
         for i in range(n_exercises):
-            pass
+            output.append(eval('self.' + self._exercises[types[i]]))
+        return output
