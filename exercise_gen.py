@@ -13,10 +13,22 @@ class ExerciseGenerator:
     _nlp = spacy.load('en_core_web_sm')
     _tags = ['ADJ', 'DET', 'NOUN', 'VERB']
     _exercises = {'question': 'gen_question()',
+                  'question_longread': 'gen_longread()',
                   'shuffle_with_translation': 'gen_shuffle(translation=True)',
                   'shuffle_no_translation': 'gen_shuffle(translation=False)',
                   'missings_with_options': 'gen_missings(options=True)',
                   'missings_no_options': 'gen_missings(options=False)'}
+
+    _line_error_text: """Translation error caused confusion, due to inadvertent
+    linguistic substitution, during the automated process."""
+
+    _block_error_text: """We regret to inform you that an unforeseen error has
+    occurred within our app, resulting in an inconvenience for our valued users.
+    Our dedicated team is diligently investigating the issue and working
+    tirelessly to rectify it promptly. We sincerely apologize for any disruption
+    caused and kindly request your patience as we strive to provide a seamless
+    and enhanced user experience. Thank you for your understanding and continued
+    support."""
 
     def __init__(self, filename: str):
         self.word_vectors = api.load("glove-wiki-gigaword-100")
@@ -58,6 +70,8 @@ class ExerciseGenerator:
             text_data = pd.DataFrame(zip(blocks, block_lengths), columns=['block', 'block_length'])
             text_data = ExerciseGenerator.explode_dataset(text_data)
             text_data['part_of_word'] = text_data['line'].apply(ExerciseGenerator.add_part_of_word)
+            blocks_group = text_data.groupby('index')['line_length'].sum()
+            text_data['block_words'] = text_data['index'].map(blocks_group)
 
         return text_data
 
@@ -89,6 +103,24 @@ class ExerciseGenerator:
             return self.text_data.loc[chosen_index, 'line']
         else:
             return 'The Stogovs left their flat early in the morning and went by bus to the country.'
+
+    def choose_block(self, option=None, limits=(40, 150)):
+        if option is None:
+            option = random.choice(ExerciseGenerator._tags)
+        index_tag = self.text_data[(self.text_data['part_of_word'].str.contains(option))].index
+        index_limit = self.text_data[(self.text_data['block_words'] >= limits[0]) &
+                                     (self.text_data['block_words'] <= limits[1])].index
+        if index_limit.empty:
+            max_len = self.text_data['block_words'].max()
+            index_limit = self.text_data.loc[self.text_data['block_words'] == max_len].index
+            del max_len
+        final_index = pd.Index.intersection(index_tag, index_limit)
+        if final_index.empty:
+            return _block_error_text
+        else:
+            chosen_index = random.choice(final_index)
+            return self.text_data.loc[chosen_index, 'block']
+
 
     @_template_wrapper
     def gen_missings(self, tag=None, options=True):
@@ -180,9 +212,23 @@ class ExerciseGenerator:
                 question,
                 target_word.lower())
 
-    def long_read(self):
-        # same as gen_question but with options (multiple?) and longer text
-        pass
+    @_template_wrapper
+    def gen_longread(self):
+        sentence = self.choose_block(option='NOUN', limits=(40, 150))
+        target_word = random.choice([str(token) for token in ExerciseGenerator._nlp(sentence) if token.pos_ == 'NOUN'])
+        question = ExerciseGenerator.huggin_question(sentence, target_word)
+        answers = [target_word]
+        wrong_answers = map(lambda x: x[0], self.word_vectors.most_similar(target_word.lower())[:3])
+        answers.extend(wrong_answers)
+        random.shuffle(answers)
+        return ('question_longread',
+                [
+                    'Read text and answer the question',
+                    'Прочитайте текст и ответьте на вопрос'
+                ],
+                (sentence, question),
+                answers,
+                target_word.lower())
 
     @staticmethod
     def huggin_question(sentence, answer):
