@@ -8,6 +8,7 @@ import requests
 from lang_proj.tokens import HUGGINGFACE_API_TOKEN
 import math
 
+
 class ExerciseGenerator:
     _nlp = spacy.load('en_core_web_sm')
     _tags = ['ADJ', 'DET', 'NOUN', 'VERB']
@@ -109,7 +110,7 @@ class ExerciseGenerator:
             random.shuffle(answers)
             return ('missings_with_options',
                     ['Choose the missing word in the sentence:',
-                    'Выберите пропущенное слово в предложении:'],
+                     'Выберите пропущенное слово в предложении:'],
                     question_sentence,
                     answers,
                     target_word.lower(),
@@ -118,7 +119,7 @@ class ExerciseGenerator:
         else:
             return ('missings_no_options',
                     ['Write down the missing word in the sentence (only one in lowercase):',
-                    'Впишите пропущенное слово в предложении (одно, в нижнем регистре):'],
+                     'Впишите пропущенное слово в предложении (одно, в нижнем регистре):'],
                     question_sentence,
                     sentence_trans,
                     target_word.lower(),
@@ -132,11 +133,11 @@ class ExerciseGenerator:
             try:
                 sentence_trans = ExerciseGenerator.translate(sentence)
             except:
-                gen_shuffle(self, translation=False)
+                sentence_trans = 'Error occured during translation'
             right_ans, shuffled = ExerciseGenerator.shuffle(sentence)
             return ('shuffle_with_translation',
                    ['Choose the right order of words',
-                   'Выберите правильный порядок слов в предложении'],
+                    'Выберите правильный порядок слов в предложении'],
                     sentence_trans,
                     shuffled,
                     right_ans)
@@ -145,10 +146,10 @@ class ExerciseGenerator:
             right_ans, shuffled = ExerciseGenerator.shuffle(sentence)
             return ('shuffle_no_translation',
                    ['Choose the right order of words',
-                   'Выберите правильный порядок слов в предложении'],
-                   '',
-                   shuffled,
-                   right_ans)
+                    'Выберите правильный порядок слов в предложении'],
+                    '',
+                    shuffled,
+                    right_ans)
 
     @staticmethod
     def shuffle(sentence):
@@ -177,9 +178,7 @@ class ExerciseGenerator:
                 ],
                 sentence,
                 question,
-                target_word.lower()
-               )
-
+                target_word.lower())
 
     def long_read(self):
         # same as gen_question but with options (multiple?) and longer text
@@ -190,11 +189,11 @@ class ExerciseGenerator:
         API_URL = "https://api-inference.huggingface.co/models/mrm8488/t5-base-finetuned-question-generation-ap"
         headers = {"Authorization": f"Bearer {HUGGINGFACE_API_TOKEN}"}
         text = f'answer: {answer} context: {sentence}'
-        response = requests.post(API_URL, headers=headers, json={"inputs": text,})
+        response = requests.post(API_URL, headers=headers, json={"inputs": text, })
         return response.json()[0]['generated_text']
 
-    def output(self, n_exercises: int=10, types='all', randomized=True):
-        if types =='all':
+    def output(self, n_exercises: int = 10, types='all', randomized=True):
+        if types == 'all':
             types = list(self._exercises.keys())
         types = types * math.ceil(n_exercises / len(types))
 
