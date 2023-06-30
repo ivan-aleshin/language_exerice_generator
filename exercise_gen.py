@@ -5,7 +5,7 @@ import gensim.downloader as api
 import spacy
 import translators as ts
 import requests
-from lang_proj.tokens import HUGGINGFACE_API_TOKEN
+from tokens import HUGGINGFACE_API_TOKEN
 import math
 
 
@@ -19,16 +19,16 @@ class ExerciseGenerator:
                   'missings_with_options': 'gen_missings(options=True)',
                   'missings_no_options': 'gen_missings(options=False)'}
 
-    _line_error_text: """Translation error caused confusion, due to inadvertent
-    linguistic substitution, during the automated process."""
+    _line_error_text: ("""Translation error caused confusion, due to inadvertent
+    linguistic substitution, during the automated process.""")
 
-    _block_error_text: """We regret to inform you that an unforeseen error has
+    _block_error_text: ("""We regret to inform you that an unforeseen error has
     occurred within our app, resulting in an inconvenience for our valued users.
     Our dedicated team is diligently investigating the issue and working
     tirelessly to rectify it promptly. We sincerely apologize for any disruption
     caused and kindly request your patience as we strive to provide a seamless
     and enhanced user experience. Thank you for your understanding and continued
-    support."""
+    support.""")
 
     def __init__(self, filename: str):
         self.word_vectors = api.load("glove-wiki-gigaword-100")
