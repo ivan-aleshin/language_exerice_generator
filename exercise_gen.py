@@ -30,9 +30,22 @@ class ExerciseGenerator:
     and enhanced user experience. Thank you for your understanding and continued
     support.""")
 
-    def __init__(self, filename: str):
+    def __init__(self):
         self.word_vectors = api.load("glove-wiki-gigaword-100")
-        self.text_data = ExerciseGenerator.text_to_dataset(filename)
+
+    def from_path(self, source):
+        with open(source, 'rt') as file:
+            text = file.read()
+        self.text_data = ExerciseGenerator.text_to_dataset(text)
+
+    def from_text_file(self, text):
+        self.text_data = ExerciseGenerator.text_to_dataset(text)
+
+    def from_text(self):
+        pass
+
+    def import_df(self):
+        pass
 
     def _template_wrapper(exercise_generator):
         def wrapper(*args, **kwargs):
@@ -57,21 +70,18 @@ class ExerciseGenerator:
         return [sent.text.strip() for sent in doc.sents]
 
     @staticmethod
-    def text_to_dataset(filename: str):
+    def text_to_dataset(text: str):
         """
         Returns dataset with text splitted into paragraphs (blocks) in first column
         and length of each block in second one.
         """
-
-        with open(filename, 'rt') as file:
-            text = file.read()
-            blocks = [block.strip() for block in text.split('\n') if block.strip()]
-            block_lengths = list(map(lambda x: len(ExerciseGenerator.split_blocks(x)), blocks))
-            text_data = pd.DataFrame(zip(blocks, block_lengths), columns=['block', 'block_length'])
-            text_data = ExerciseGenerator.explode_dataset(text_data)
-            text_data['part_of_word'] = text_data['line'].apply(ExerciseGenerator.add_part_of_word)
-            blocks_group = text_data.groupby('index')['line_length'].sum()
-            text_data['block_words'] = text_data['index'].map(blocks_group)
+        blocks = [block.strip() for block in text.split('\n') if block.strip()]
+        block_lengths = list(map(lambda x: len(ExerciseGenerator.split_blocks(x)), blocks))
+        text_data = pd.DataFrame(zip(blocks, block_lengths), columns=['block', 'block_length'])
+        text_data = ExerciseGenerator.explode_dataset(text_data)
+        text_data['part_of_word'] = text_data['line'].apply(ExerciseGenerator.add_part_of_word)
+        blocks_group = text_data.groupby('index')['line_length'].sum()
+        text_data['block_words'] = text_data['index'].map(blocks_group)
 
         return text_data
 
@@ -252,3 +262,9 @@ class ExerciseGenerator:
         for i in range(n_exercises):
             output.append(eval('self.' + self._exercises[types[i]]))
         return output
+
+    def df_export(self):
+        return self.text_data
+
+    def df_import(self, df):
+        self.text_data = df
