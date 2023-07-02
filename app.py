@@ -1,3 +1,4 @@
+import streamlit as st
 from exercise_gen import ExerciseGenerator
 
 
