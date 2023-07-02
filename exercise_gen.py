@@ -8,6 +8,9 @@ import requests
 #from tokens import HUGGINGFACE_API_TOKEN
 import math
 import streamlit as st
+import spacy.cli
+
+spacy.cli.download("en_core_web_sm")
 
 HUGGINGFACE_API_TOKEN = st.secrets['HUGGINGFACE_API_TOKEN']
 
