@@ -19,16 +19,16 @@ class ExerciseGenerator:
                   'missings_with_options': 'gen_missings(options=True)',
                   'missings_no_options': 'gen_missings(options=False)'}
 
-    _line_error_text: ("""Translation error caused confusion, due to inadvertent
-    linguistic substitution, during the automated process.""")
+    _line_error_text = """Translation error caused confusion, due to inadvertent
+    linguistic substitution, during the automated process.""".replace('\n', '')
 
-    _block_error_text: ("""We regret to inform you that an unforeseen error has
+    _block_error_text = """We regret to inform you that an unforeseen error has
     occurred within our app, resulting in an inconvenience for our valued users.
     Our dedicated team is diligently investigating the issue and working
     tirelessly to rectify it promptly. We sincerely apologize for any disruption
     caused and kindly request your patience as we strive to provide a seamless
     and enhanced user experience. Thank you for your understanding and continued
-    support.""")
+    support.""".replace('\n', '')
 
     def __init__(self):
         self.word_vectors = api.load("glove-wiki-gigaword-100")
@@ -42,9 +42,6 @@ class ExerciseGenerator:
         self.text_data = ExerciseGenerator.text_to_dataset(text)
 
     def from_text(self):
-        pass
-
-    def import_df(self):
         pass
 
     def _template_wrapper(exercise_generator):
@@ -112,7 +109,7 @@ class ExerciseGenerator:
             chosen_index = random.choice(self.text_data.loc[final_index].index)
             return self.text_data.loc[chosen_index, 'line']
         else:
-            return 'The Stogovs left their flat early in the morning and went by bus to the country.'
+            return ExerciseGenerator._line_error_text
 
     def choose_block(self, option=None, limits=(40, 150)):
         if option is None:
@@ -126,7 +123,7 @@ class ExerciseGenerator:
             del max_len
         final_index = pd.Index.intersection(index_tag, index_limit)
         if final_index.empty:
-            return _block_error_text
+            return ExerciseGenerator._block_error_text
         else:
             chosen_index = random.choice(final_index)
             return self.text_data.loc[chosen_index, 'block']
@@ -268,3 +265,9 @@ class ExerciseGenerator:
 
     def df_import(self, df):
         self.text_data = df
+
+    def inport_from_csv(self, path):
+        pass
+
+    def export_to_csv(self, filename):
+        self.text_data.to_csv(filename)
