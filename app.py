@@ -1,181 +1,20 @@
 import streamlit as st
 from exercise_gen import ExerciseGenerator
 
-# What next:
-# 2) V Add generation text by class
-#
-# 3) add progress bar of loading and generating
-# from stqdm import stqdm
-#
-# 4) V Add adjusting number of tasks to generate
-#
-# 5) V
-#
-# 6) Add adjusting dificulty
 
-# tasks = [{'type': 'question',
-#   'description': ['Right down the answer for this question (only one word in lower case):',
-#    'Напишите ответ на вопрос (одно слово по английски в нижнем регистре)'],
-#   'sentence': '"Potter\'s been sent a broomstick, Professor," said Malfoy quickly.',
-#   'options': 'question: What did Professor Malfoy sayotter was sent?',
-#   'answer': 'broomstick',
-#   'result': '',
-#   'total': 0},
-#  {'type': 'question_longread',
-#   'description': ['Read text and answer the question',
-#    'Прочитайте текст и ответьте на вопрос'],
-#   'sentence': ('He took a deep breath, covered his face with his arms, and sprinted across the room. He expected to feel sharp beaks and claws tearing at him any second, but nothing happened. He reached the door untouched. He pulled the handle, but it was locked.',
-#    'question: What did he take to stop the beaks and claws from tearing'),
-#   'options': ['breathe', 'breath', 'breathing', 'shortness'],
-#   'answer': 'breath',
-#   'result': '',
-#   'total': 0},
-#  {'type': 'shuffle_with_translation',
-#   'description': ['Choose the right order of words',
-#    'Выберите правильный порядок слов в предложении'],
-#   'sentence': 'Поэтому я сказал ему, после пушистики, дракона будет легко ... "',
-#   'options': ['after',
-#    'Fluffy,',
-#    'would',
-#    'him,',
-#    'I',
-#    'dragon',
-#    'easy..."',
-#    'So',
-#    'told',
-#    'a',
-#    'be'],
-#   'answer': ['So',
-#    'I',
-#    'told',
-#    'him,',
-#    'after',
-#    'Fluffy,',
-#    'a',
-#    'dragon',
-#    'would',
-#    'be',
-#    'easy..."'],
-#   'result': '',
-#   'total': 0},
-#  {'type': 'shuffle_no_translation',
-#   'description': ['Choose the right order of words',
-#    'Выберите правильный порядок слов в предложении'],
-#   'sentence': '',
-#   'options': ['away."', 'exams', '"Hermione,', 'the', 'ages', 'are'],
-#   'answer': ['"Hermione,', 'the', 'exams', 'are', 'ages', 'away."'],
-#   'result': '',
-#   'total': 0},
-#  {'type': 'missings_with_options',
-#   'description': ['Choose the missing word in the sentence:',
-#    'Выберите пропущенное слово в предложении:'],
-#   'sentence': "Ron gritted his teeth and stepped carefully over  ____  dog's legs.",
-#   'options': ['part', 'one', 'the', 'this'],
-#   'answer': 'the',
-#   'result': '',
-#   'total': 0},
-#  {'type': 'missings_no_options',
-#   'description': ['Write down the missing word in the sentence (only one in lowercase):',
-#    'Впишите пропущенное слово в предложении (одно, в нижнем регистре):'],
-#   'sentence': "Harry's broom had given a  ____  jerk and Harry swung off it.",
-#   'options': 'Метла Гарри дала дикий рывок, и Гарри отказался от нее.',
-#   'answer': 'wild',
-#   'result': '',
-#   'total': 0},
-#  {'type': 'question',
-#   'description': ['Right down the answer for this question (only one word in lower case):',
-#    'Напишите ответ на вопрос (одно слово по английски в нижнем регистре)'],
-#   'sentence': 'Everyone was eating the food that had been sent up.',
-#   'options': 'question: What was sent up to everyone?',
-#   'answer': 'food',
-#   'result': '',
-#   'total': 0},
-#  {'type': 'question_longread',
-#   'description': ['Read text and answer the question',
-#    'Прочитайте текст и ответьте на вопрос'],
-#   'sentence': ('I think he sort of wanted to give me a chance. I think he knows more or less everything that goes on here, you know. I reckon he had a pretty good idea we were going to try, and instead of stopping us, he just taught us enough to help. I don\'t think it was an accident he let me find out how the mirror worked. It\'s almost like he thought I had the right to face Voldemort if I could...."',
-#    'question: What did he have that he wanted to give me a chance?'),
-#   'options': ['notion', 'thought', 'idea', 'thinking'],
-#   'answer': 'idea',
-#   'result': '',
-#   'total': 0},
-#  {'type': 'shuffle_with_translation',
-#   'description': ['Choose the right order of words',
-#    'Выберите правильный порядок слов в предложении'],
-#   'sentence': '«Я слышал, что ты пошел жить с маглов», - сказал Рон.',
-#   'options': ['"I',
-#    'with',
-#    'heard',
-#    'Ron.',
-#    'you',
-#    'Muggles,"',
-#    'live',
-#    'to',
-#    'said',
-#    'went'],
-#   'answer': ['"I',
-#    'heard',
-#    'you',
-#    'went',
-#    'to',
-#    'live',
-#    'with',
-#    'Muggles,"',
-#    'said',
-#    'Ron.'],
-#   'result': '',
-#   'total': 0},
-#  {'type': 'shuffle_no_translation',
-#   'description': ['Choose the right order of words',
-#    'Выберите правильный порядок слов в предложении'],
-#   'sentence': '',
-#   'options': ['start.', 'a', 'with', 'Harry', 'woke'],
-#   'answer': ['Harry', 'woke', 'with', 'a', 'start.'],
-#   'result': '',
-#   'total': 0},
-#  {'type': 'missings_with_options',
-#   'description': ['Choose the missing word in the sentence:',
-#    'Выберите пропущенное слово в предложении:'],
-#   'sentence': 'Harry lay in his dark cupboard much later, wishing he  ____  a watch.',
-#   'options': ['having', 'been', 'have', 'had'],
-#   'answer': 'had',
-#   'result': '',
-#   'total': 0},
-#  {'type': 'missings_no_options',
-#   'description': ['Write down the missing word in the sentence (only one in lowercase):',
-#    'Впишите пропущенное слово в предложении (одно, в нижнем регистре):'],
-#   'sentence': 'The cut had turned a nasty shade of  ____ .',
-#   'options': 'Разрез превратил неприятный оттенок зеленого.',
-#   'answer': 'green',
-#   'result': '',
-#   'total': 0},
-#  {'type': 'question',
-#   'description': ['Right down the answer for this question (only one word in lower case):',
-#    'Напишите ответ на вопрос (одно слово по английски в нижнем регистре)'],
-#   'sentence': 'Harry bolted to the door and looked out.',
-#   'options': 'question: Where did Harry bolt to?',
-#   'answer': 'door',
-#   'result': '',
-#   'total': 0},
-#  {'type': 'question_longread',
-#   'description': ['Read text and answer the question',
-#    'Прочитайте текст и ответьте на вопрос'],
-#   'sentence': ("The white king took off his crown and threw it at Harry's feet. They had won. The chessmen parted and bowed, leaving the door ahead clear. With one last desperate look back at Ron, Harry and Hermione charged through the door and up the next passageway.",
-#    'question: What did Harry and Hermione charge up?'),
-#   'options': ['passageway', 'corridors', 'passageways', 'walkway'],
-#   'answer': 'passageway',
-#   'result': '',
-#   'total': 0},
-#  {'type': 'shuffle_with_translation',
-#   'description': ['Choose the right order of words',
-#    'Выберите правильный порядок слов в предложении'],
-#   'sentence': '"И у тебя действительно есть - ты знаешь ..."',
-#   'options': ['you', 'got', 'know..."', 'really', 'you', '--', '"And', 'have'],
-#   'answer': ['"And', 'have', 'you', 'really', 'got', '--', 'you', 'know..."'],
-#   'result': '',
-#   'total': 0}]
-
+# Set size of text in app
 TEXT_SIZE = '#' * 5
+
+# Set page configuration
+st.set_page_config(
+   page_title="ExGen App by Ivan Aleshin",
+   page_icon="🇬🇧",
+   layout="wide",
+   initial_sidebar_state="expanded",)
+
+#
+# Exercise funictions
+#
 
 
 def ex_question(task, index):
@@ -217,37 +56,33 @@ def ex_missings_nopt(task, index):
     task['result'] = st.text_input('', key=index)
     task['total'] = int(task['result'] == task['answer'])
 
+#
+# Data processiong functions
+#
+@st.cache_resource
+def exgen_class_preload():
+    return ExerciseGenerator()
+
 
 @st.cache_data
-def text_from_file(text):
-    exgen = ExerciseGenerator()
-    exgen.from_text_file(text.getvalue().decode("utf-8"))
-    return exgen.df_export()
+def text_from_file(_exgen, text):
+    _exgen.from_text_file(text.getvalue().decode("unicode_escape"))
+    return _exgen.df_export()
 
 
-def generate_text(df, _n_exercises, _randomized):
-    exgen = ExerciseGenerator()
+def generate_text(exgen, df, _n_exercises, _randomized):
     exgen.df_import(df)
     return exgen.output(_n_exercises, randomized=_randomized)
 
 
-ex_types = {'question': ex_question,
-            'question_longread': ex_question_longread,
-            'shuffle_with_translation': ex_shuffle_t,
-            'shuffle_no_translation': ex_shuffle_not,
-            'missings_with_options': ex_missings_opt,
-            'missings_no_options': ex_missings_nopt}
+@st.cache_data
+def load_from_built_in():
+    pass
+
 
 #
-# Config & Session State
+# Session State
 #
-
-st.set_page_config(
-   page_title="ExGen App by Ivan Aleshin",
-   page_icon="🇬🇧",
-   layout="wide",
-   initial_sidebar_state="expanded",)
-
 
 if 'tasks' not in st.session_state:
     tasks = []
@@ -258,6 +93,40 @@ if 'upload_btn' not in st.session_state:
     gen_btn_disabled = True
 else:
     gen_btn_disabled = False
+
+#
+# Dictionaties
+#
+
+ex_types = {'question': ex_question,
+            'question_longread': ex_question_longread,
+            'shuffle_with_translation': ex_shuffle_t,
+            'shuffle_no_translation': ex_shuffle_not,
+            'missings_with_options': ex_missings_opt,
+            'missings_no_options': ex_missings_nopt}
+
+built_in_list = {'': '',
+                 '----- A-level -----': '',
+                 'To Kill a Mockingbird (Harper Lee)': '',
+                 'Brave New World (Aldous Huxley)': '',
+                 'To the Lighthouse (Virginia Woolf)': '',
+                 'Harry Potter': '',
+                 '----- B-level -----': '',
+                 'Charlie and the Chocolate Factory': '',
+                 'The Hobbit': '',
+                 'Atlas Shrugged by Ayn Rand (1957)': '',
+                 'Zen and the Art of Motorcycle Maintenance': '',
+                 '----- C-level -----': '',
+                 'The Godfather': '',
+                 'The Grapes of Wrath': '',
+                 'Ulysses': ''}
+
+#
+# Class preload
+#
+
+with st.spinner('Dictionary caching..'):
+    exgen = exgen_class_preload()
 
 #
 # Header
@@ -311,29 +180,37 @@ with st.sidebar:
 #
 
 tabs_labels = [
-    ['Insert text', 'Вставить текст'][language],
+    ['Built-in texts', 'Встроенные тексты'][language],
     ['Upload text', 'Загрущить текст'][language],
-    ['Built-in texts', 'Встроенные тексты'][language]
+    ['Insert text', 'Вставить текст'][language]
 ]
 
-tab_text, tab_upload, tab_builtin = st.tabs(tabs_labels)
+tab_builtin, tab_upload, tab_insert_text = st.tabs(tabs_labels)
 
 
-with tab_text:
-    tab_text_label = ['Paste some text to generate exercises',
-                      'Вставьте текст для создания упражнения'][language]
-    st.markdown(f"{TEXT_SIZE} {tab_text_label}")
-    text_input = st.text_area('nolabel', label_visibility="hidden")
+with tab_builtin:
+    builtin_label = ['Choose the text from list',
+                     'Выберите текст из списка'][language]
+    st.markdown(f"{TEXT_SIZE} {builtin_label}")
 
-    gen_start_text_input = st.button(['Generate it!',
-                                      'Генерировать упражнения'][language],
-                                      key='text_input')
+    built_in_text = st.selectbox('', list(built_in_list.keys()))
+
+    if (not built_in_text) or ('level' in built_in_text):
+        builtin_load_btn_disabled = True
+    else:
+        builtin_load_btn_disabled = False
+
+    builtin_load_btn = st.button(['Load text',
+                                  'Загрузить тест'][language],
+                                  key='built_in',
+                                  disabled=builtin_load_btn_disabled)
+
+    if builtin_load_btn:
+        #st.session_state.upload = text_from_file(exgen, uploaded_text)
+        gen_btn_disabled = False
 
 
 with tab_upload:
-    def switch_on_upload_state():
-        st.session_state['upload'] = True
-
 
     upload_text_label = ['Upload your text file',
                          'Загрузите ваш текстовый фалй'][language]
@@ -345,34 +222,20 @@ with tab_upload:
                            key='upload_btn')
 
     if uploadbtn:
-        st.session_state.upload = text_from_file(uploaded_text)
+        st.session_state.upload = text_from_file(exgen, uploaded_text)
         gen_btn_disabled = False
 
 
-with tab_builtin:
-    builtin_label = ['Choose the text from list',
-                     'Выберите текст из списка'][language]
-    st.markdown(f"{TEXT_SIZE} {builtin_label}")
-    built_in_list = ['',
-                     '----- A-level -----',
-                     'To Kill a Mockingbird',
-                     'Brave New World',
-                     'To the Lighthouse',
-                     'Harry Potter',
-                     '----- B-level -----',
-                     'Charlie and the Chocolate Factory',
-                     'The Hobbit',
-                     'Atlas Shrugged by Ayn Rand (1957)',
-                     'Zen and the Art of Motorcycle Maintenance',
-                     '----- C-level -----',
-                     'The Godfather',
-                     'The Grapes of Wrath',
-                     'Ulysses']
-    built_in_text = st.selectbox('', built_in_list)
+with tab_insert_text:
+    tab_text_label = ['Paste some text to generate exercises',
+                      'Вставьте текст для создания упражнения'][language]
+    st.markdown(f"{TEXT_SIZE} {tab_text_label}")
+    text_input = st.text_area('nolabel', label_visibility="hidden")
 
-    gen_start_builtin = st.button(['Genearte it!',
-                                   'Генерировать упражнения'][language],
-                                   key='built_in')
+    gen_start_text_input = st.button(['Start text processing',
+                                      'Начать обработку текста'][language],
+                                      key='text_input')
+
 
 gen_btn = st.button(['Generate it!',
                      'Генерировать упражнения'][language],
@@ -384,7 +247,8 @@ gen_btn = st.button(['Generate it!',
 #
 
 if gen_btn:
-    st.session_state.tasks = generate_text(st.session_state.upload,
+    st.session_state.tasks = generate_text(exgen,
+                                           st.session_state.upload,
                                            n_exercises,
                                            randomized)
     st.experimental_rerun()
