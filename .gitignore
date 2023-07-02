@@ -127,6 +127,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.streamlit/secrets.toml
 tokens.py
 
 # Spyder project settings

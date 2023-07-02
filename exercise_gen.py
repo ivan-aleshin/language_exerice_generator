@@ -7,6 +7,9 @@ import translators as ts
 import requests
 from tokens import HUGGINGFACE_API_TOKEN
 import math
+import streamlit as st
+
+HUGGINGFACE_API_TOKEN = st.secrets['HUGGINGFACE_API_TOKEN']
 
 
 class ExerciseGenerator:
