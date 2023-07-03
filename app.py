@@ -1,3 +1,4 @@
+import pandas as pd
 import streamlit as st
 from streamlit_elements import elements, mui, html
 
@@ -14,10 +15,10 @@ st.set_page_config(
    layout="wide",
    initial_sidebar_state="expanded",)
 
+
 #
 # Exercise funictions
 #
-
 
 def ex_question(task, index):
     st.markdown(f"{TEXT_SIZE} {(task['sentence'])}")
@@ -58,9 +59,11 @@ def ex_missings_nopt(task, index):
     task['result'] = st.text_input('', key=index)
     task['total'] = int(task['result'] == task['answer'])
 
+
 #
 # Data processiong functions
 #
+
 @st.cache_resource
 def exgen_class_preload():
     return ExerciseGenerator()
@@ -96,6 +99,7 @@ if 'upload_btn' not in st.session_state:
 else:
     gen_btn_disabled = False
 
+
 #
 # Dictionaties
 #
@@ -123,12 +127,14 @@ built_in_list = {'': '',
                  'The Grapes of Wrath': '',
                  'Ulysses': ''}
 
+
 #
 # Class preload
 #
 
 with st.spinner('Dictionary caching..'):
     exgen = exgen_class_preload()
+
 
 #
 # Header
@@ -143,6 +149,7 @@ with col1:
     language = lang_dict[interface_lang]
     st.header(['English Exrecises Generator App',
                'Генератор упражнений по английскому языку'][language])
+
 
 #
 # Sidebar
@@ -176,6 +183,7 @@ with st.sidebar:
         order_notrans = st.checkbox(['Words order without translation', 'Порядок слов без перевода'][language], value=True)
         missing_write = st.checkbox(['Write down the missing word', 'Вписать впропущенное слово'][language], value=True)
         missing_choose = st.checkbox(['Choose the missing word', 'Выбрать пропущенное слово'][language], value=True)
+
 
 #
 # Text Choice Tabs
@@ -243,6 +251,7 @@ gen_btn = st.button(['Generate it!',
                      key='gen_btn',
                      disabled=gen_btn_disabled)
 
+
 #
 # Generation
 #
@@ -263,6 +272,7 @@ exercises_label = ['Exercises', 'Упражнения'][language]
 st.markdown(f"{TEXT_SIZE} {exercises_label}")
 
 task_tabs = st.tabs(list(map(str, range(1, n_exercises + 1))))
+answers = []
 
 if 'tasks' in st.session_state:
 
@@ -271,8 +281,10 @@ if 'tasks' in st.session_state:
             st.subheader(task['description'][language])
             ex_type = task['type']
             ex_func = (ex_types[ex_type])
-            ex_func(task, i)
+            answers.append((ex_func(task, i),
+                            ("\N{broccoli}" if task['result'] == task['answer'] else "\N{tomato}")))
 
+#answers = list(map(lambda x: x[1]))
 '---'
 
 #
@@ -288,23 +300,36 @@ if st.button(['Submit for review',
     st.subheader(f'{total_sum} / {len(tasks)}')
 
     if total_sum == len(tasks):
-        st.success(['Превосходно!',
-                    'Perfect!'][language])
+        st.success(['Perfect!',
+                    'Превосходно!'][language])
         st.balloons()
 
     elif total_sum / len(tasks) >= 0.85:
-        st.success(['Отлично!',
-                    'Excellent!'][language])
+        st.success(['Excellent!',
+                    'Отлично!'][language])
         st.balloons()
 
     elif total_sum / len(tasks) >= 0.70:
-        st.success(['Хорошо!',
-                    'Good!'][language])
+        st.success(['Good!',
+                    'Хорошо!'][language])
         st.balloons()
 
     elif total_sum / len(tasks) > 0.55:
-        st.success(['Вы справились!',
-                    'You did it!'][language])
+        st.success(['You did it!',
+                    'Вы справились!'][language])
     else:
-        st.error(['Попробуйте еще раз',
-                  'Try one more time'][language])
+        st.error(['Try one more time',
+                  'Попробуйте еще раз'][language])
+
+    # Display answers
+    with st.expander('', expanded=False):
+
+        ans_df = zip(map(lambda task: task['answer'], tasks),
+                     map(lambda task: task['result'], tasks),
+                     map(lambda task: ("\N{broccoli}" if task['result'] == task['answer'] else "\N{tomato}"), tasks))
+        answers = pd.DataFrame(ans_df,
+                               index=range(1, n_exercises + 1))
+        answers.columns = [['Answer', 'Ответ'][language],
+                           ['Correct answer', 'Правильный ответ'][language],
+                           ['Result', 'Результат'][language]]
+        st.table(answers)
