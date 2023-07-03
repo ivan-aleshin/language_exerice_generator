@@ -1,4 +1,6 @@
 import streamlit as st
+from streamlit_elements import elements, mui, html
+
 from exercise_gen import ExerciseGenerator
 
 
@@ -236,7 +238,6 @@ with tab_insert_text:
                                       'Начать обработку текста'][language],
                                       key='text_input')
 
-
 gen_btn = st.button(['Generate it!',
                      'Генерировать упражнения'][language],
                      key='gen_btn',
@@ -281,7 +282,8 @@ if 'tasks' in st.session_state:
 total_scores = [int(task['total']) for task in tasks]
 total_sum = sum(total_scores)
 
-if st.button('Отправить задание'):
+if st.button(['Submit for review',
+              'Отправить задание'][language]):
 
     st.subheader(f'{total_sum} / {len(tasks)}')
 

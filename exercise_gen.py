@@ -1,14 +1,15 @@
-import re
-import random
-import pandas as pd
-import gensim.downloader as api
-import spacy
-import translators as ts
-import requests
-#from tokens import HUGGINGFACE_API_TOKEN
 import math
+import random
+import re
+import requests
+
+import contractions
+import gensim.downloader as api
+import pandas as pd
+import spacy
 import streamlit as st
-import spacy.cli
+import translators as ts
+
 
 spacy.cli.download("en_core_web_sm")
 
@@ -70,7 +71,7 @@ class ExerciseGenerator:
         """
         doc = ExerciseGenerator._nlp(block)
 
-        return [sent.text.strip() for sent in doc.sents]
+        return [contractions.fix(sent.text.strip()) for sent in doc.sents]
 
     @staticmethod
     def text_to_dataset(text: str):
