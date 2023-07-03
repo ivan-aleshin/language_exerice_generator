@@ -135,7 +135,6 @@ class ExerciseGenerator:
             chosen_index = random.choice(final_index)
             return self.text_data.loc[chosen_index, 'block']
 
-
     @_template_wrapper
     def gen_missings(self, tag=None, options=True):
         if tag is None:
@@ -273,8 +272,9 @@ class ExerciseGenerator:
     def df_import(self, df):
         self.text_data = df
 
-    def inport_from_csv(self, path):
-        pass
+    def import_from_csv(self, path):
+        self.text_data = pd.read_csv(path)
+        return self.text_data
 
     def export_to_csv(self, filename):
         self.text_data.to_csv(filename)
