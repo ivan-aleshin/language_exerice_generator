@@ -113,19 +113,21 @@ ex_types = {'question': ex_question,
 
 built_in_list = {'': '',
                  '----- A-level -----': '',
+                 'Atlas Shrugged (Ayn Rand)': 'texts/atlas_shrugged.csv',
+                 'Charlie and the Chocolate Factory (Roald Dahl)': 'texts/charlie_and_the_chocolate_factory.csv',
                  'To Kill a Mockingbird (Harper Lee)': '',
-                 'Brave New World (Aldous Huxley)': '',
-                 'To the Lighthouse (Virginia Woolf)': '',
-                 'Harry Potter': '',
                  '----- B-level -----': '',
-                 'Charlie and the Chocolate Factory': '',
-                 'The Hobbit': '',
-                 'Atlas Shrugged by Ayn Rand (1957)': '',
-                 'Zen and the Art of Motorcycle Maintenance': '',
+                 'Brave New World (Aldous Huxley)': 'texts/brave_new_world.csv',
+                 'Harry Potter and the Philosopher\'s Stone (J.K. Rowling)': 'texts/harry_potter_1.csv',
+                 'To the Lighthouse (Virginia Woolf)': 'texts/to_the_lighthouse.csv',
+                 'The Godfather (Mario Puzo)': 'texts/the_godfather.csv',
+                 'The Hobbit (J.R.R. Tolkien)': 'texts/the_hobbit.csv',
+                 'The Grapes of Wrath (John Stainbeck)': 'texts/grapes_of_wrath.csv',
                  '----- C-level -----': '',
-                 'The Godfather': '',
-                 'The Grapes of Wrath': '',
-                 'Ulysses': ''}
+                 'The Advetures of Sherloc Holmes (Arthur Conan Doyle)': 'texts/sherlock_holmes.csv',
+                 'Ulysses (James Joyce)': '',
+                 'Zen and the Art of Motorcycle Maintenance (Robert Pirsig)': 'texts/zen_and_the_art.csv'}
+
 
 
 #
@@ -191,7 +193,7 @@ with st.sidebar:
 
 tabs_labels = [
     ['Built-in texts', 'Встроенные тексты'][language],
-    ['Upload text', 'Загрущить текст'][language],
+    ['Upload text', 'Загрузить текст'][language],
     ['Insert text', 'Вставить текст'][language]
 ]
 
@@ -205,7 +207,9 @@ with tab_builtin:
 
     built_in_text = st.selectbox('', list(built_in_list.keys()))
 
-    if (not built_in_text) or ('level' in built_in_text):
+    if ((not built_in_text) or
+        ('level' in built_in_text) or
+        (not built_in_list[built_in_text])):
         builtin_load_btn_disabled = True
     else:
         builtin_load_btn_disabled = False
@@ -216,7 +220,7 @@ with tab_builtin:
                                   disabled=builtin_load_btn_disabled)
 
     if builtin_load_btn:
-        #st.session_state.upload = text_from_file(exgen, uploaded_text)
+        st.session_state.upload = exgen.import_from_csv(built_in_list[built_in_text])
         gen_btn_disabled = False
 
 
@@ -224,6 +228,8 @@ with tab_upload:
 
     upload_text_label = ['Upload your text file',
                          'Загрузите ваш текстовый фалй'][language]
+    st.write(['*Text must be NOT formatted txt type.',
+              '*Тест должен быть неотформатированным и меть расширение txt'][language])
     st.markdown(f"{TEXT_SIZE} {upload_text_label}")
     uploaded_text = st.file_uploader('')
 
@@ -324,8 +330,8 @@ if st.button(['Submit for review',
     # Display answers
     with st.expander('', expanded=False):
 
-        ans_df = zip(map(lambda task: task['answer'], tasks),
-                     map(lambda task: task['result'], tasks),
+        ans_df = zip(map(lambda task: str(task['result']), tasks),
+                     map(lambda task: str(task['answer']), tasks),
                      map(lambda task: ("\N{broccoli}" if task['result'] == task['answer'] else "\N{tomato}"), tasks))
         answers = pd.DataFrame(ans_df,
                                index=range(1, n_exercises + 1))
