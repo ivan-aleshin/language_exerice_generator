@@ -4,6 +4,8 @@ from streamlit_elements import elements, mui, html
 
 from exercise_gen import ExerciseGenerator
 
+from pathlib import Path
+
 
 # Set size of text in app
 TEXT_SIZE = '#' * 5
@@ -113,8 +115,8 @@ ex_types = {'question': ex_question,
 
 built_in_list = {'': '',
                  '----- A-level -----': '',
-                 'Atlas Shrugged (Ayn Rand)': 'texts/atlas_shrugged.csv',
-                 'Charlie and the Chocolate Factory (Roald Dahl)': 'texts/charlie_and_the_chocolate_factory.csv',
+                 'Atlas Shrugged (Ayn Rand)': r'texts\\atlas_shrugged.csv',
+                 'Charlie and the Chocolate Factory (Roald Dahl)': 'texts\charlie_and_the_chocolate_factory.csv',
                  'To Kill a Mockingbird (Harper Lee)': '',
                  '----- B-level -----': '',
                  'Brave New World (Aldous Huxley)': 'texts/brave_new_world.csv',
