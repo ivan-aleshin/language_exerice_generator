@@ -115,7 +115,7 @@ ex_types = {'question': ex_question,
 
 built_in_list = {'': '',
                  '----- A-level -----': '',
-                 'Atlas Shrugged (Ayn Rand)': r'texts/atlas_shrugged.csv',
+                 'Atlas Shrugged (Ayn Rand)': r'https://github.com/ivan-aleshin/language_exerice_generator/blob/main/texts/atlas_shrugged.csv',
                  'Charlie and the Chocolate Factory (Roald Dahl)': r'texts/charlie_and_the_chocolate_factory.csv',
                  'To Kill a Mockingbird (Harper Lee)': '',
                  '----- B-level -----': '',
