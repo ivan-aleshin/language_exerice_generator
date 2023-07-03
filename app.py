@@ -1,10 +1,9 @@
+import random
 import pandas as pd
 import streamlit as st
 from streamlit_elements import elements, mui, html
 
 from exercise_gen import ExerciseGenerator
-
-from pathlib import Path
 
 
 # Set size of text in app
@@ -87,6 +86,23 @@ def load_from_built_in():
     pass
 
 
+def green_emoji():
+    emojis = ["\N{broccoli}",
+              "\N{green apple}",
+              "\N{pear}",
+              "\N{cactus}",
+              "\N{cucumber}",
+              "\N{leafy green}"]
+    return random.choice(emojis)
+
+
+def red_emoji():
+    emojis = ["\N{tomato}",
+              "\N{red apple}",
+              "\N{strawberry}"]
+    return random.choice(emojis)
+
+
 #
 # Session State
 #
@@ -129,7 +145,6 @@ built_in_list = {'': '',
                  'The Advetures of Sherloc Holmes (Arthur Conan Doyle)': 'texts/sherlock_holmes.csv',
                  'Ulysses (James Joyce)': '',
                  'Zen and the Art of Motorcycle Maintenance (Robert Pirsig)': 'texts/zen_and_the_art.csv'}
-
 
 
 #
@@ -289,10 +304,8 @@ if 'tasks' in st.session_state:
             st.subheader(task['description'][language])
             ex_type = task['type']
             ex_func = (ex_types[ex_type])
-            answers.append((ex_func(task, i),
-                            ("\N{broccoli}" if task['result'] == task['answer'] else "\N{tomato}")))
+            ex_func(task, i)
 
-#answers = list(map(lambda x: x[1]))
 '---'
 
 #
@@ -334,7 +347,7 @@ if st.button(['Submit for review',
 
         ans_df = zip(map(lambda task: str(task['result']), tasks),
                      map(lambda task: str(task['answer']), tasks),
-                     map(lambda task: ("\N{broccoli}" if task['result'] == task['answer'] else "\N{tomato}"), tasks))
+                     map(lambda task: (green_emoji() if task['result'] == task['answer'] else red_emoji()), tasks))
         answers = pd.DataFrame(ans_df,
                                index=range(1, n_exercises + 1))
         answers.columns = [['Answer', 'Ответ'][language],
