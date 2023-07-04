@@ -62,7 +62,7 @@ def ex_missings_nopt(task, index):
 
 
 #
-# Data processiong functions
+# Processing functions
 #
 
 @st.cache_resource
@@ -76,9 +76,11 @@ def text_from_file(_exgen, text):
     return _exgen.df_export()
 
 
-def generate_text(exgen, df, _n_exercises, _randomized):
+def generate_text(exgen, df, _n_exercises=10, _types='all', _randomized=False):
     exgen.df_import(df)
-    return exgen.output(_n_exercises, randomized=_randomized)
+    return exgen.output(n_exercises=_n_exercises,
+                        types=_types,
+                        randomized=_randomized)
 
 
 @st.cache_data
@@ -184,9 +186,12 @@ with st.sidebar:
 
     randomized = st.checkbox(['Randomized',
                               'В случайном порядке'][language],
-                              key='random',
-                              value=True)
+                             key='random',
+                             value=False)
     '---'
+
+    # Part of word settings
+
     st.markdown(f"{'####'} {['Parts of word', 'Части речи'][language]}")
     with st.expander(''):
         noun = st.checkbox(['Noun', 'Существительное'][language], value=True)
@@ -194,14 +199,49 @@ with st.sidebar:
         adjective = st.checkbox(['Adjective', 'Прилагательное'][language], value=True)
         determinant = st.checkbox(['Determinant', 'Артикль'][language], value=True)
 
+    # Exercise type settings
+
     st.markdown(f"{'####'} {['Exercise type', 'Тип упражения'][language]}")
+    exercise_toggle_types = []
     with st.expander(''):
-        quest_ans = st.checkbox(['Question answering', 'Ответ на вопрос'][language], value=True)
-        quest_long = st.checkbox(['Text reading with question', 'Текст с ответом на вопрос'][language], value=True)
-        order_trans = st.checkbox(['Words order with translation', 'Порядок слов с переводом'][language], value=True)
-        order_notrans = st.checkbox(['Words order without translation', 'Порядок слов без перевода'][language], value=True)
-        missing_write = st.checkbox(['Write down the missing word', 'Вписать впропущенное слово'][language], value=True)
-        missing_choose = st.checkbox(['Choose the missing word', 'Выбрать пропущенное слово'][language], value=True)
+        quest_ans = st.checkbox(['Question answering',
+                                 'Ответ на вопрос'][language],
+                                value=True)
+        if quest_ans:
+            exercise_toggle_types.append('question')
+
+        quest_long = st.checkbox(['Text reading with question',
+                                  'Текст с ответом на вопрос'][language],
+                                 value=True)
+        if quest_long:
+            exercise_toggle_types.append('question_longread')
+
+        order_trans = st.checkbox(['Words order with translation',
+                                   'Порядок слов с переводом'][language],
+                                  value=True)
+        if order_trans:
+            exercise_toggle_types.append('shuffle_with_translation')
+
+        order_notrans = st.checkbox(['Words order without translation',
+                                     'Порядок слов без перевода'][language],
+                                    value=True)
+        if order_notrans:
+            exercise_toggle_types.append('shuffle_no_translation')
+
+        missing_write = st.checkbox(['Write down the missing word',
+                                     'Вписать впропущенное слово'][language],
+                                    value=True)
+        if missing_write:
+            exercise_toggle_types.append('missings_with_options')
+
+        missing_choose = st.checkbox(['Choose the missing word',
+                                      'Выбрать пропущенное слово'][language],
+                                     value=True)
+        if missing_choose:
+            exercise_toggle_types.append('missings_no_options')
+
+        if not exercise_toggle_types:
+            exercise_toggle_types = list(ex_types.keys())
 
 
 #
@@ -218,7 +258,7 @@ tab_builtin, tab_upload, tab_insert_text = st.tabs(tabs_labels)
 
 
 with tab_builtin:
-    builtin_label = ['Choose the text from list',
+    builtin_label = ['Choose a text from the list',
                      'Выберите текст из списка'][language]
     st.markdown(f"{TEXT_SIZE} {builtin_label}")
 
@@ -282,8 +322,9 @@ gen_btn = st.button(['Generate it!',
 if gen_btn:
     st.session_state.tasks = generate_text(exgen,
                                            st.session_state.upload,
-                                           n_exercises,
-                                           randomized)
+                                           _n_exercises=n_exercises,
+                                           _types=exercise_toggle_types,
+                                           _randomized=randomized)
     st.experimental_rerun()
 
 
