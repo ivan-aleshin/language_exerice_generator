@@ -2,6 +2,7 @@ import random
 import pandas as pd
 import streamlit as st
 import gensim.downloader as api
+import spacy
 from streamlit_elements import elements, mui, html
 
 from exercise_gen import ExerciseGenerator
@@ -17,6 +18,9 @@ st.set_page_config(
    layout="wide",
    initial_sidebar_state="expanded",)
 
+@st.cache_resource
+def spacy_load():
+    return spacy.load('en_core_web_md')
 
 #
 # Exercise funictions

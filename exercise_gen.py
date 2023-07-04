@@ -15,7 +15,6 @@ spacy.cli.download("en_core_web_md")
 HUGGINGFACE_API_TOKEN = st.secrets['HUGGINGFACE_API_TOKEN']
 
 
-@st.cache_resource
 def spacy_load():
     return spacy.load('en_core_web_md')
 
