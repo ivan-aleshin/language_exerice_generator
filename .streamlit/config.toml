@@ -2,7 +2,7 @@
 gatherUsageStats = true
 
 [server]
-maxUploadSize = 2
+maxUploadSize = 5
 
 [theme]
 primaryColor="#afd0bf"
