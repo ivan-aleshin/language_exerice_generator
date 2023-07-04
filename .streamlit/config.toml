@@ -1,0 +1,11 @@
+[browser]
+gatherUsageStats = True
+
+[server]
+maxUploadSize = 200
+
+[theme]
+primaryColor="#afd0bf"
+backgroundColor="#e2efde"
+secondaryBackgroundColor="#cae7b9"
+textColor="#1c110a"
