@@ -1,8 +1,8 @@
 [browser]
-gatherUsageStats = True
+gatherUsageStats = true
 
 [server]
-maxUploadSize = 200
+maxUploadSize = 2
 
 [theme]
 primaryColor="#afd0bf"
