@@ -1,6 +1,7 @@
 import random
 import pandas as pd
 import streamlit as st
+import gensim.downloader as api
 from streamlit_elements import elements, mui, html
 
 from exercise_gen import ExerciseGenerator
@@ -66,8 +67,8 @@ def ex_missings_nopt(task, index):
 #
 
 @st.cache_resource
-def exgen_class_preload():
-    return ExerciseGenerator()
+def word_vectors_preload():
+    return api.load("glove-wiki-gigaword-100")
 
 
 @st.cache_data
@@ -153,9 +154,14 @@ built_in_list = {'': '',
 # Class preload
 #
 
-with st.spinner('Dictionary caching..'):
-    exgen = exgen_class_preload()
+with st.spinner('Models caching..'):
+    exgen_vectors = word_vectors_preload()
 
+
+exgen = ExerciseGenerator(exgen_vectors)
+
+
+# cache the dictionaries separate from class
 
 #
 # Header
@@ -194,11 +200,27 @@ with st.sidebar:
 
     st.markdown(f"{'####'} {['Parts of word', 'Части речи'][language]}")
     with st.expander(''):
+        type_of_word = []
         noun = st.checkbox(['Noun', 'Существительное'][language], value=True)
-        verb = st.checkbox(['Verb', 'Глагол'][language], value=True)
-        adjective = st.checkbox(['Adjective', 'Прилагательное'][language], value=True)
-        determinant = st.checkbox(['Determinant', 'Артикль'][language], value=True)
+        if noun:
+            type_of_word.append('NOUN')
 
+        verb = st.checkbox(['Verb', 'Глагол'][language], value=True)
+        if verb:
+            type_of_word.append('VERB')
+
+        adjective = st.checkbox(['Adjective', 'Прилагательное'][language], value=True)
+        if adjective:
+            type_of_word.append('ADJ')
+
+        determinant = st.checkbox(['Determinant', 'Артикль'][language], value=True)
+        if determinant:
+            type_of_word.append('DET')
+
+        if not type_of_word:
+            type_of_word = 'all'
+
+    exgen.set_tags(type_of_word)
     # Exercise type settings
 
     st.markdown(f"{'####'} {['Exercise type', 'Тип упражения'][language]}")

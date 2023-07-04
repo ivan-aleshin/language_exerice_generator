@@ -10,15 +10,19 @@ import spacy
 import streamlit as st
 import translators as ts
 
-
-spacy.cli.download("en_core_web_sm")
+spacy.cli.download("en_core_web_md")
 
 HUGGINGFACE_API_TOKEN = st.secrets['HUGGINGFACE_API_TOKEN']
 
 
+@st.cache_resource
+def spacy_load():
+    return spacy.load('en_core_web_md')
+
+
 class ExerciseGenerator:
-    _nlp = spacy.load('en_core_web_sm')
-    _tags = ['ADJ', 'DET', 'NOUN', 'VERB']
+    _nlp = spacy_load()
+    _all_tags = ['ADJ', 'DET', 'NOUN', 'VERB']
     _exercises = {'question': 'gen_question()',
                   'question_longread': 'gen_longread()',
                   'shuffle_with_translation': 'gen_shuffle(translation=True)',
@@ -37,19 +41,9 @@ class ExerciseGenerator:
     and enhanced user experience. Thank you for your understanding and continued
     support.""".replace('\n', '')
 
-    def __init__(self):
-        self.word_vectors = api.load("glove-wiki-gigaword-100")
-
-    def from_path(self, source):
-        with open(source, 'rt') as file:
-            text = file.read()
-        self.text_data = ExerciseGenerator.text_to_dataset(text)
-
-    def from_text_file(self, text):
-        self.text_data = ExerciseGenerator.text_to_dataset(text)
-
-    def from_text(self):
-        pass
+    def __init__(self, vectors):
+        self.word_vectors = vectors
+        self.tags = ExerciseGenerator._all_tags.copy()
 
     def _template_wrapper(exercise_generator):
         def wrapper(*args, **kwargs):
@@ -63,6 +57,25 @@ class ExerciseGenerator:
                     'total': 0}
             return task
         return wrapper
+
+    def get_tags(self):
+        return self.tags.copy()
+
+    def set_tags(self, tags='all'):
+        if tags == 'all':
+            self.tags = ExerciseGenerator._all_tags.copy()
+        self.tags = tags
+
+    def from_path(self, source):
+        with open(source, 'rt') as file:
+            text = file.read()
+        self.text_data = ExerciseGenerator.text_to_dataset(text)
+
+    def from_text_file(self, text):
+        self.text_data = ExerciseGenerator.text_to_dataset(text)
+
+    def from_text(self):
+        pass
 
     @staticmethod
     def split_blocks(block: str):
@@ -79,6 +92,7 @@ class ExerciseGenerator:
         Returns dataset with text splitted into paragraphs (blocks) in first column
         and length of each block in second one.
         """
+        text = ExerciseGenerator.text_cleaning(text)
         blocks = [block.strip() for block in text.split('\n') if block.strip()]
         block_lengths = list(map(lambda x: len(ExerciseGenerator.split_blocks(x)), blocks))
         text_data = pd.DataFrame(zip(blocks, block_lengths), columns=['block', 'block_length'])
@@ -105,9 +119,16 @@ class ExerciseGenerator:
                 part_of_word.append(pow.pos_)
         return str(part_of_word)
 
+    @staticmethod
+    def text_cleaning(text):
+        text = text.replace('\xad', '')
+        text = text.replace('--', '-')
+        text = text.replace('...', '.')
+        return text
+
     def choose_sentence(self, option=None, limits=(3, 15)):
         if option is None:
-            option = random.choice(ExerciseGenerator._tags)
+            option = random.choice(self.tags)
         index_tag = self.text_data[(self.text_data['part_of_word'].str.contains(option))].index
         index_limit = self.text_data[(self.text_data['line_length'] >= limits[0]) &
                                      (self.text_data['line_length'] <= limits[1])].index
@@ -120,7 +141,7 @@ class ExerciseGenerator:
 
     def choose_block(self, option=None, limits=(40, 150)):
         if option is None:
-            option = random.choice(ExerciseGenerator._tags)
+            option = random.choice(self.tags)
         index_tag = self.text_data[(self.text_data['part_of_word'].str.contains(option))].index
         index_limit = self.text_data[(self.text_data['block_words'] >= limits[0]) &
                                      (self.text_data['block_words'] <= limits[1])].index
@@ -136,18 +157,21 @@ class ExerciseGenerator:
             return self.text_data.loc[chosen_index, 'block']
 
     @_template_wrapper
-    def gen_missings(self, tag=None, options=True):
-        if tag is None:
-            tag = random.choice(ExerciseGenerator._tags)
+    def gen_missings(self, options=True):
+        tag = random.choice(self.tags)
         sentence = self.choose_sentence(tag, limits=(5, 18))
         if not options:
             try:
                 sentence_trans = ExerciseGenerator.translate(sentence)
             except:
                 options = True
-        target_word = random.choice([str(token) for token in ExerciseGenerator._nlp(sentence) if token.pos_ == tag])
+        target_word = ExerciseGenerator.target_word_selector(sentence, tag)
         blank_line = ' ____ '
-        question_sentence = re.sub(fr'\b{target_word}\b', blank_line, sentence, count=1, flags=re.I)
+        question_sentence = re.sub(fr'\b{target_word}\b',
+                                   blank_line,
+                                   sentence,
+                                   count=1,
+                                   flags=re.I)
         if options:
             answers = [target_word]
             wrong_answers = map(lambda x: x[0], self.word_vectors.most_similar(target_word.lower())[:3])
@@ -213,8 +237,15 @@ class ExerciseGenerator:
 
     @_template_wrapper
     def gen_question(self):
-        sentence = self.choose_sentence(option='NOUN', limits=(7, 12))
-        target_word = random.choice([str(token) for token in ExerciseGenerator._nlp(sentence) if token.pos_ == 'NOUN'])
+        tags = self.get_tags()
+        if 'DET' in tags:
+            tags.remove('DET')
+        if not tags:
+            tags = ExerciseGenerator._all_tags.copy()
+            tags.remove('DET')
+        tag = random.choice(tags)
+        sentence = self.choose_sentence(option=tag, limits=(7, 12))
+        target_word = ExerciseGenerator.target_word_selector(sentence, tag)
         question = ExerciseGenerator.huggin_question(sentence, target_word)
         return ('question',
                 [
@@ -227,8 +258,15 @@ class ExerciseGenerator:
 
     @_template_wrapper
     def gen_longread(self):
-        sentence = self.choose_block(option='NOUN', limits=(40, 150))
-        target_word = random.choice([str(token) for token in ExerciseGenerator._nlp(sentence) if token.pos_ == 'NOUN'])
+        tags = self.get_tags()
+        if 'DET' in tags:
+            tags.remove('DET')
+        if not tags:
+            tags = ExerciseGenerator._all_tags.copy()
+            tags.remove('DET')
+        tag = random.choice(tags)
+        sentence = self.choose_block(option=tag, limits=(30, 150))
+        target_word = ExerciseGenerator.target_word_selector(sentence, tag)
         question = ExerciseGenerator.huggin_question(sentence, target_word)
         answers = [target_word]
         wrong_answers = map(lambda x: x[0], self.word_vectors.most_similar(target_word.lower())[:3])
@@ -242,6 +280,15 @@ class ExerciseGenerator:
                 (sentence, question),
                 answers,
                 target_word.lower())
+
+    @staticmethod
+    def target_word_selector(sentence, tag):
+        target_words = [str(token) for token in ExerciseGenerator._nlp(sentence) if token.pos_ == tag]
+        #target_words = [token for token in target_words if len(token.strip()) > 1]
+        if target_words:
+            return random.choice([token for token in target_words])
+
+        return random.choice([str(token) for token in ExerciseGenerator._nlp(sentence) if str(token.pos_) in ExerciseGenerator._all_tags])
 
     @staticmethod
     def huggin_question(sentence, answer):
