@@ -10,6 +10,10 @@ from exercise_gen import ExerciseGenerator
 
 # Set size of text in app
 TEXT_SIZE = '#' * 5
+# Set models
+GENSIM_MODEL = "glove-wiki-gigaword-100"
+SPACY_MODEL = 'en_core_web_md'
+
 
 # Set page configuration
 st.set_page_config(
@@ -18,9 +22,11 @@ st.set_page_config(
    layout="wide",
    initial_sidebar_state="expanded",)
 
+
 @st.cache_resource
 def spacy_load():
-    return spacy.load('en_core_web_md')
+    return spacy.load(SPACY_MODEL)
+
 
 #
 # Exercise funictions
@@ -66,13 +72,36 @@ def ex_missings_nopt(task, index):
     task['total'] = int(task['result'] == task['answer'])
 
 
+def ex_autio_text_missings(task, index):
+    st.audio(cached_audio_from_text(task['sentence'][0]))
+    sentence = task['sentence'][1]
+    sentence = st.markdown(sentence.format(
+        ans1 := st.selectbox("",
+                             (['___ 1 ___', *task['options'][0]]),
+                             key=(f'{index}a')),
+        ans2 := st.selectbox("",
+                             (['___ 2 ___', *task['options'][1]]),
+                             key=(f'{index}b')),
+        ans3 := st.selectbox("",
+                             (['___ 3 ___', *task['options'][2]]),
+                             key=(f'{index}c')))
+                           )
+
+    task['result'] = [ans1, ans2, ans3]
+    task['total'] = sum(
+        map(lambda a, r: round((int(a == r) / 3), 2),
+            task['answer'],
+            task['result'])
+            )
+
+
 #
 # Processing functions
 #
 
 @st.cache_resource
 def word_vectors_preload():
-    return api.load("glove-wiki-gigaword-100")
+    return api.load(GENSIM_MODEL)
 
 
 @st.cache_data
@@ -86,6 +115,11 @@ def generate_text(exgen, df, _n_exercises=10, _types='all', _randomized=False):
     return exgen.output(n_exercises=_n_exercises,
                         types=_types,
                         randomized=_randomized)
+
+
+@st.cache_resource
+def cached_audio_from_text(text):
+    return exgen.text_to_speech(text)
 
 
 @st.cache_data
@@ -134,7 +168,8 @@ ex_types = {'question': ex_question,
             'shuffle_with_translation': ex_shuffle_t,
             'shuffle_no_translation': ex_shuffle_not,
             'missings_with_options': ex_missings_opt,
-            'missings_no_options': ex_missings_nopt}
+            'missings_no_options': ex_missings_nopt,
+            'audio_text_missings': ex_autio_text_missings}
 
 built_in_list = {'': '',
                  '----- A-level -----': '',
@@ -155,7 +190,7 @@ built_in_list = {'': '',
 
 
 #
-# Class preload
+# Vectors preload
 #
 
 with st.spinner('Models caching..'):
@@ -265,6 +300,14 @@ with st.sidebar:
                                      value=True)
         if missing_choose:
             exercise_toggle_types.append('missings_no_options')
+
+        audio_text_missings = st.checkbox(['Choose the missing word \n (Audio)',
+                                      'Выбрать пропущенное слово \n (Аудио)'][language],
+                                     value=True)
+        if audio_text_missings:
+            exercise_toggle_types.append('audio_text_missings')
+            # text_to_speech model kick-start
+            cached_audio_from_text('')
 
         if not exercise_toggle_types:
             exercise_toggle_types = list(ex_types.keys())
@@ -379,7 +422,7 @@ if 'tasks' in st.session_state:
 # Total counter
 #
 
-total_scores = [int(task['total']) for task in tasks]
+total_scores = [float(task['total']) for task in tasks]
 total_sum = sum(total_scores)
 
 if st.button(['Submit for review',
@@ -387,7 +430,7 @@ if st.button(['Submit for review',
 
     st.subheader(f'{total_sum} / {len(tasks)}')
 
-    if total_sum == len(tasks):
+    if total_sum / len(tasks) >= 0.95:
         st.success(['Perfect!',
                     'Превосходно!'][language])
         st.balloons()
