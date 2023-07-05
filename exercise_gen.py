@@ -4,7 +4,6 @@ import re
 import requests
 
 import contractions
-import gensim.downloader as api
 import pandas as pd
 import spacy
 import streamlit as st
@@ -27,7 +26,8 @@ class ExerciseGenerator:
                   'shuffle_with_translation': 'gen_shuffle(translation=True)',
                   'shuffle_no_translation': 'gen_shuffle(translation=False)',
                   'missings_with_options': 'gen_missings(options=True)',
-                  'missings_no_options': 'gen_missings(options=False)'}
+                  'missings_no_options': 'gen_missings(options=False)',
+                  'audio_text_missings': 'gen_aud_text()'}
 
     _line_error_text = """Translation error caused confusion, due to inadvertent
     linguistic substitution, during the automated process.""".replace('\n', '')
@@ -280,10 +280,38 @@ class ExerciseGenerator:
                 answers,
                 target_word.lower())
 
+    @_template_wrapper
+    def gen_aud_text(self):
+        tags = self.get_tags()
+        if not tags:
+            tags = ExerciseGenerator._all_tags.copy()
+        sentence = self.choose_block(limits=(30, 150))
+        target_words = [str(token).lower() for token in ExerciseGenerator._nlp(sentence) if token.pos_ in tags]
+        target_words = random.sample(target_words, k=3)
+        question_sentence = sentence
+        options = []
+        for i, word in enumerate(target_words):
+            wrong_answers = map(lambda x: x[0], self.word_vectors.most_similar(word.lower())[:3])
+            answers = [word, *wrong_answers]
+            random.shuffle(answers)
+            options.append(answers.copy())
+            question_sentence = re.sub(fr'\b{word}\b',
+                                       ('**{' + str(i) + '}**'),
+                                       question_sentence,
+                                       count=1,
+                                       flags=re.I)
+        return ('audio_text_missings',
+                [
+                    'Listen audio file and fill the gaps',
+                    'Прослушайте аудио и заполните пропуски'
+                ],
+                (sentence, question_sentence),
+                options,
+                target_words)
+
     @staticmethod
     def target_word_selector(sentence, tag):
         target_words = [str(token) for token in ExerciseGenerator._nlp(sentence) if token.pos_ == tag]
-        #target_words = [token for token in target_words if len(token.strip()) > 1]
         if target_words:
             return random.choice([token for token in target_words])
 
@@ -296,6 +324,13 @@ class ExerciseGenerator:
         text = f'answer: {answer} context: {sentence}'
         response = requests.post(API_URL, headers=headers, json={"inputs": text, })
         return response.json()[0]['generated_text']
+
+    def text_to_speech(self, text):
+        # API_URL = "https://api-inference.huggingface.co/models/espnet/english_male_ryanspeech_fastspeech"
+        API_URL = "https://api-inference.huggingface.co/models/facebook/fastspeech2-en-ljspeech"
+        headers = {"Authorization": f"Bearer {HUGGINGFACE_API_TOKEN}"}
+        response = requests.post(API_URL, headers=headers, json={"inputs": text})
+        return response.content
 
     def output(self, n_exercises: int = 10, types='all', randomized=True):
         if types == 'all':
