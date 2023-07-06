@@ -5,7 +5,7 @@ gatherUsageStats = true
 maxUploadSize = 5
 
 [theme]
-primaryColor="#afd0bf"
+primaryColor="#748c7d"
 backgroundColor="#e2efde"
 secondaryBackgroundColor="#cae7b9"
 textColor="#1c110a"
