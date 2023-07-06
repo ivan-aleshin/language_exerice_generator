@@ -1,4 +1,5 @@
 import random
+import requests
 import pandas as pd
 import streamlit as st
 import gensim.downloader as api
@@ -11,6 +12,8 @@ from exercise_gen import ExerciseGenerator
 
 # Set size of text in app
 TEXT_SIZE = '#' * 5
+TITLE = ''
+HUGGINGFACE_API_TOKEN = st.secrets['HUGGINGFACE_API_TOKEN']
 # Set models
 GENSIM_MODEL = "glove-wiki-gigaword-100"
 SPACY_MODEL = 'en_core_web_md'
@@ -29,6 +32,19 @@ def spacy_load():
     return spacy.load(SPACY_MODEL)
 
 
+@st.cache_resource
+def text_to_image(text, title=TITLE):
+    # api_url = "https://api-inference.huggingface.co/models/SG161222/Realistic_Vision_V1.4"
+    api_url = "https://api-inference.huggingface.co/models/gsdf/Counterfeit-V2.5"
+    headers = {"Authorization": f"Bearer {HUGGINGFACE_API_TOKEN}"}
+    if title:
+        text = f'{title}. {text}'
+    response = requests.post(api_url,
+                             headers=headers,
+                             json={"inputs": text, })
+    return response.content
+
+
 #
 # Exercise funictions
 #
@@ -43,6 +59,10 @@ def ex_question(task, index):
 def ex_question_longread(task, index):
     st.markdown(f"{TEXT_SIZE} {'Text:'} {(task['sentence'][0])}")
     st.markdown(f"{TEXT_SIZE} {(task['sentence'][1])}")
+
+    fig = text_to_image(task['sentence'][0])
+    st.image(fig)
+
     task['result'] = st.selectbox('',
                                   ['', *task['options']],
                                   key=index)
@@ -229,9 +249,6 @@ exgen = ExerciseGenerator(exgen_vectors)
 # text_to_speech model kick-start
 cached_audio_from_text('')
 
-
-# cache the dictionaries separate from class
-
 #
 # Header
 #
@@ -383,6 +400,7 @@ with tab_builtin:
     if builtin_load_btn:
         st.session_state.upload = exgen.import_from_csv(built_in_list[built_in_text])
         gen_btn_disabled = False
+        TITLE = built_in_text
 
 
 with tab_upload:
@@ -394,14 +412,17 @@ with tab_upload:
     st.markdown(f"{TEXT_SIZE} {upload_text_label}")
     uploaded_text = st.file_uploader('')
 
+    book_title = st.text_input(['Fill the title of book',
+                                'Укажите название книги \n (на английском)'][language])
+
     uploadbtn = st.button(['Start text processing',
                            'Начать обработку текста'][language],
-                           key='upload_btn')
+                          key='upload_btn')
 
     if uploadbtn:
         st.session_state.upload = text_from_file(exgen, uploaded_text)
         gen_btn_disabled = False
-
+        TITLE = book_title
 
 with tab_insert_text:
     tab_text_label = ['Paste some text to generate exercises',

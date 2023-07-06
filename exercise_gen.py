@@ -315,7 +315,7 @@ class ExerciseGenerator:
         tags = self.get_tags()
         if not tags:
             tags = ExerciseGenerator._all_tags.copy()
-        sentence = self.choose_block(limits=(25, 60))
+        sentence = self.choose_block(limits=(35, 90))
         target_words = [str(token).lower() for token in ExerciseGenerator._nlp(sentence) if token.pos_ in tags]
         target_words = random.sample(target_words, k=4)
         sentence = [(str(token).lower(), str(token.pos_)) if (str(token) in target_words and str(token.pos_ in tags)) else (str(token) + ' ') for token in ExerciseGenerator._nlp(sentence)]
