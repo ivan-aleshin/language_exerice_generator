@@ -27,7 +27,8 @@ class ExerciseGenerator:
                   'shuffle_no_translation': 'gen_shuffle(translation=False)',
                   'missings_with_options': 'gen_missings(options=True)',
                   'missings_no_options': 'gen_missings(options=False)',
-                  'audio_text_missings': 'gen_aud_text()'}
+                  'audio_text_missings': 'gen_aud_text()',
+                  'part_of_word': 'gen_part_of_word()'}
 
     _line_error_text = """Translation error caused confusion, due to inadvertent
     linguistic substitution, during the automated process.""".replace('\n', '')
@@ -308,6 +309,24 @@ class ExerciseGenerator:
                 (sentence, question_sentence),
                 options,
                 target_words)
+
+    @_template_wrapper
+    def gen_part_of_word(self):
+        tags = self.get_tags()
+        if not tags:
+            tags = ExerciseGenerator._all_tags.copy()
+        sentence = self.choose_block(limits=(25, 60))
+        target_words = [str(token).lower() for token in ExerciseGenerator._nlp(sentence) if token.pos_ in tags]
+        target_words = random.sample(target_words, k=4)
+        sentence = [(str(token).lower(), str(token.pos_)) if (str(token) in target_words and str(token.pos_ in tags)) else (str(token) + ' ') for token in ExerciseGenerator._nlp(sentence)]
+        return ('part_of_word',
+                [
+                    'Detect a part of word',
+                    'Определите часть речи'
+                ],
+                sentence,
+                target_words,
+                sentence)
 
     @staticmethod
     def target_word_selector(sentence, tag):
