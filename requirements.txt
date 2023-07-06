@@ -5,4 +5,5 @@ requests==2.31.0
 spacy==3.2.6
 streamlit==1.23.1
 streamlit-elements==0.1.0
+st-annotated-text==4.0.0
 translators==5.7.6
