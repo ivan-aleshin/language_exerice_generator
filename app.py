@@ -4,6 +4,7 @@ import streamlit as st
 import gensim.downloader as api
 import spacy
 from streamlit_elements import elements, mui, html
+from annotated_text import annotated_text
 
 from exercise_gen import ExerciseGenerator
 
@@ -95,6 +96,31 @@ def ex_autio_text_missings(task, index):
             )
 
 
+def ex_part_of_word(task, index):
+    sentence = task['sentence']
+    tags = ExerciseGenerator._all_tags
+    ans1 = st.selectbox("",
+                       (['1', *tags]),
+                       key=(f'{index}a'))
+    ans2 = st.selectbox("",
+                       (['2', *tags]),
+                       key=(f'{index}b'))
+    ans3 = st.selectbox("",
+                       (['3', *tags]),
+                       key=(f'{index}c'))
+    ans4 = st.selectbox("",
+                       (['4', *tags]),
+                       key=(f'{index}d'))
+
+    ans_dict = {word: ans for word, ans in zip(
+        task['options'],
+        [f'{ans1}', f'{ans2}', f'{ans3}', f'{ans4}']
+    )}
+    task['result'] = [(el[0], ans_dict[el[0]]) if isinstance(el, tuple) else el for el in sentence]
+    annotated_text(task['result'])
+    task['total'] = int(task['result'] == task['answer'])
+
+
 #
 # Processing functions
 #
@@ -169,7 +195,8 @@ ex_types = {'question': ex_question,
             'shuffle_no_translation': ex_shuffle_not,
             'missings_with_options': ex_missings_opt,
             'missings_no_options': ex_missings_nopt,
-            'audio_text_missings': ex_autio_text_missings}
+            'audio_text_missings': ex_autio_text_missings,
+            'part_of_word': ex_part_of_word}
 
 built_in_list = {'': '',
                  '----- A-level -----': '',
@@ -198,6 +225,9 @@ with st.spinner('Models caching..'):
 
 
 exgen = ExerciseGenerator(exgen_vectors)
+
+# text_to_speech model kick-start
+cached_audio_from_text('')
 
 
 # cache the dictionaries separate from class
@@ -306,8 +336,13 @@ with st.sidebar:
                                      value=True)
         if audio_text_missings:
             exercise_toggle_types.append('audio_text_missings')
-            # text_to_speech model kick-start
-            cached_audio_from_text('')
+
+        part_of_word = st.checkbox(['Part of word',
+                                    'Часть речи'][language],
+                                     value=True)
+        if part_of_word:
+            exercise_toggle_types.append('part_of_word')
+
 
         if not exercise_toggle_types:
             exercise_toggle_types = list(ex_types.keys())
