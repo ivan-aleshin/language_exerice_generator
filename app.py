@@ -315,52 +315,45 @@ with st.sidebar:
         quest_ans = st.checkbox(['Question answering',
                                  'Ответ на вопрос'][language],
                                 value=True)
-        if quest_ans:
-            exercise_toggle_types.append('question')
 
         quest_long = st.checkbox(['Text reading with question',
                                   'Текст с ответом на вопрос'][language],
                                  value=True)
-        if quest_long:
-            exercise_toggle_types.append('question_longread')
 
         order_trans = st.checkbox(['Words order with translation',
                                    'Порядок слов с переводом'][language],
                                   value=True)
-        if order_trans:
-            exercise_toggle_types.append('shuffle_with_translation')
 
         order_notrans = st.checkbox(['Words order without translation',
                                      'Порядок слов без перевода'][language],
                                     value=True)
-        if order_notrans:
-            exercise_toggle_types.append('shuffle_no_translation')
 
         missing_write = st.checkbox(['Write down the missing word',
                                      'Вписать впропущенное слово'][language],
                                     value=True)
-        if missing_write:
-            exercise_toggle_types.append('missings_with_options')
 
         missing_choose = st.checkbox(['Choose the missing word',
                                       'Выбрать пропущенное слово'][language],
                                      value=True)
-        if missing_choose:
-            exercise_toggle_types.append('missings_no_options')
 
         audio_text_missings = st.checkbox(['Choose the missing word \n (Audio)',
-                                      'Выбрать пропущенное слово \n (Аудио)'][language],
-                                     value=True)
-        if audio_text_missings:
-            exercise_toggle_types.append('audio_text_missings')
+                                           'Выбрать пропущенное слово \n (Аудио)'][language],
+                                          value=True)
 
         part_of_word = st.checkbox(['Part of word',
                                     'Часть речи'][language],
-                                     value=True)
-        if part_of_word:
-            exercise_toggle_types.append('part_of_word')
+                                   value=True)
 
+        type_ex_switches = {'question': quest_ans,
+                            'question_longread': quest_long,
+                            'shuffle_with_translation': order_trans,
+                            'shuffle_no_translation': order_notrans,
+                            'missings_with_options': missing_write,
+                            'missings_no_options': missing_choose,
+                            'audio_text_missings': audio_text_missings,
+                            'part_of_word': part_of_word}
 
+        exercise_toggle_types = [item[0] for item in type_ex_switches.items() if item[1]]
         if not exercise_toggle_types:
             exercise_toggle_types = list(ex_types.keys())
 

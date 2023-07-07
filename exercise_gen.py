@@ -43,9 +43,13 @@ class ExerciseGenerator:
 
     def __init__(self, vectors):
         self.word_vectors = vectors
-        self.tags = ExerciseGenerator._all_tags.copy()
+        self._tags = ExerciseGenerator._all_tags.copy()
 
     def _template_wrapper(exercise_generator):
+        """
+        Wraps a results of exercise generative functions
+        into standartized dictionary.
+        """
         def wrapper(*args, **kwargs):
             result = exercise_generator(*args, **kwargs)
             task = {'type': result[0],
@@ -58,24 +62,17 @@ class ExerciseGenerator:
             return task
         return wrapper
 
-    def get_tags(self):
-        return self.tags.copy()
+    #
+    # Text processing
+    #
 
-    def set_tags(self, tags='all'):
-        if tags == 'all':
-            self.tags = ExerciseGenerator._all_tags.copy()
-        self.tags = tags
-
-    def from_path(self, source):
-        with open(source, 'rt') as file:
-            text = file.read()
-        self.text_data = ExerciseGenerator.text_to_dataset(text)
-
-    def from_text_file(self, text):
-        self.text_data = ExerciseGenerator.text_to_dataset(text)
-
-    def from_text(self):
-        pass
+    @staticmethod
+    def text_cleaning(text):
+        text = text.replace('\xad', '')
+        text = text.replace('--', '-')
+        text = text.replace('...', '.')
+        text = re.sub(r'\D', '', text)
+        return text
 
     @staticmethod
     def split_blocks(block: str):
@@ -85,6 +82,29 @@ class ExerciseGenerator:
         doc = ExerciseGenerator._nlp(block)
 
         return [contractions.fix(sent.text.strip()) for sent in doc.sents]
+
+    @staticmethod
+    def explode_dataset(dataset):
+        """
+        Makes dataset grouped by block (paragraph) with separate rows
+        of sentences.
+        """
+        dataset['line'] = dataset['block'].apply(ExerciseGenerator.split_blocks)
+        dataset = dataset.explode('line').reset_index()
+        dataset['line_length'] = dataset['line'].apply(lambda x: len(x.split()))
+        return dataset
+
+    @staticmethod
+    def add_part_of_word(sentence):
+        """
+        Add part of word column into dataset
+        """
+        doc = ExerciseGenerator._nlp(sentence)
+        part_of_word = []
+        for pow in doc:
+            if pow.pos_ not in part_of_word:
+                part_of_word.append(pow.pos_)
+        return str(part_of_word)
 
     @staticmethod
     def text_to_dataset(text: str):
@@ -103,32 +123,13 @@ class ExerciseGenerator:
 
         return text_data
 
-    @staticmethod
-    def explode_dataset(dataset):
-        dataset['line'] = dataset['block'].apply(ExerciseGenerator.split_blocks)
-        dataset = dataset.explode('line').reset_index()
-        dataset['line_length'] = dataset['line'].apply(lambda x: len(x.split()))
-        return dataset
-
-    @staticmethod
-    def add_part_of_word(sentence):
-        doc = ExerciseGenerator._nlp(sentence)
-        part_of_word = []
-        for pow in doc:
-            if pow.pos_ not in part_of_word:
-                part_of_word.append(pow.pos_)
-        return str(part_of_word)
-
-    @staticmethod
-    def text_cleaning(text):
-        text = text.replace('\xad', '')
-        text = text.replace('--', '-')
-        text = text.replace('...', '.')
-        return text
+    #
+    # Functions for picking sentences and blocks
+    #
 
     def choose_sentence(self, option=None, limits=(3, 15)):
         if option is None:
-            option = random.choice(self.tags)
+            option = random.choice(self._tags)
         index_tag = self.text_data[(self.text_data['part_of_word'].str.contains(option))].index
         index_limit = self.text_data[(self.text_data['line_length'] >= limits[0]) &
                                      (self.text_data['line_length'] <= limits[1])].index
@@ -141,7 +142,7 @@ class ExerciseGenerator:
 
     def choose_block(self, option=None, limits=(40, 150)):
         if option is None:
-            option = random.choice(self.tags)
+            option = random.choice(self._tags)
         index_tag = self.text_data[(self.text_data['part_of_word'].str.contains(option))].index
         index_limit = self.text_data[(self.text_data['block_words'] >= limits[0]) &
                                      (self.text_data['block_words'] <= limits[1])].index
@@ -156,9 +157,13 @@ class ExerciseGenerator:
             chosen_index = random.choice(final_index)
             return self.text_data.loc[chosen_index, 'block']
 
+    #
+    # Generative methods
+    #
+
     @_template_wrapper
     def gen_missings(self, options=True):
-        tag = random.choice(self.tags)
+        tag = random.choice(self._tags)
         sentence = self.choose_sentence(tag, limits=(5, 18))
         if not options:
             try:
@@ -219,21 +224,6 @@ class ExerciseGenerator:
                     '',
                     shuffled,
                     right_ans)
-
-    @staticmethod
-    def shuffle(sentence):
-        right_ans = sentence.split()
-        shuffled = sentence.split()
-        while right_ans == shuffled:
-            random.shuffle(shuffled)
-        return right_ans, shuffled
-
-    @staticmethod
-    def translate(sentence):
-        return ts.translate_text(sentence,
-                                 translator='google',
-                                 from_language='en',
-                                 to_language='ru')
 
     @_template_wrapper
     def gen_question(self):
@@ -328,6 +318,25 @@ class ExerciseGenerator:
                 target_words,
                 sentence)
 
+    #
+    # Auxiliary functions for generative functions
+    #
+
+    @staticmethod
+    def shuffle(sentence):
+        right_ans = sentence.split()
+        shuffled = sentence.split()
+        while right_ans == shuffled:
+            random.shuffle(shuffled)
+        return right_ans, shuffled
+
+    @staticmethod
+    def translate(sentence):
+        return ts.translate_text(sentence,
+                                 translator='google',
+                                 from_language='en',
+                                 to_language='ru')
+
     @staticmethod
     def target_word_selector(sentence, tag):
         target_words = [str(token) for token in ExerciseGenerator._nlp(sentence) if token.pos_ == tag]
@@ -351,6 +360,18 @@ class ExerciseGenerator:
         response = requests.post(API_URL, headers=headers, json={"inputs": text})
         return response.content
 
+    def get_tags(self):
+        return self._tags.copy()
+
+    def set_tags(self, tags='all'):
+        if tags == 'all':
+            self._tags = ExerciseGenerator._all_tags.copy()
+        self._tags = tags
+
+    #
+    # I/O functions
+    #
+
     def output(self, n_exercises: int = 10, types='all', randomized=True):
         if types == 'all':
             types = list(self._exercises.keys())
@@ -365,6 +386,17 @@ class ExerciseGenerator:
         for i in range(n_exercises):
             output.append(eval('self.' + self._exercises[types[i]]))
         return output
+
+    def from_path(self, source):
+        with open(source, 'rt') as file:
+            text = file.read()
+        self.text_data = ExerciseGenerator.text_to_dataset(text)
+
+    def from_text_file(self, text):
+        self.text_data = ExerciseGenerator.text_to_dataset(text)
+
+    def from_text(self):
+        pass
 
     def df_export(self):
         return self.text_data
