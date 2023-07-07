@@ -61,7 +61,10 @@ def ex_question_longread(task, index):
     st.markdown(f"{TEXT_SIZE} {(task['sentence'][1])}")
 
     fig = text_to_image(task['sentence'][0])
-    st.image(fig)
+    try:
+        st.image(fig)
+    except:
+        st.text('Unable to load illustration')
 
     task['result'] = st.selectbox('',
                                   ['', *task['options']],
