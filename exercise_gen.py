@@ -63,16 +63,35 @@ class ExerciseGenerator:
         return wrapper
 
     #
-    # Text processing
+    # Getters & Setters
     #
 
-    @staticmethod
-    def text_cleaning(text):
-        text = text.replace('\xad', '')
-        text = text.replace('--', '-')
-        text = text.replace('...', '.')
-        text = re.sub(r'\D', '', text)
-        return text
+    def get_tags(self):
+        return self._tags.copy()
+
+    def set_tags(self, tags='all'):
+        if tags == 'all':
+            self._tags = ExerciseGenerator._all_tags.copy()
+        self._tags = tags
+
+    #
+    # Text input
+    #
+
+    def from_path(self, source):
+        with open(source, 'rt') as file:
+            text = file.read()
+        self.text_data = ExerciseGenerator.text_to_dataset(text)
+
+    def from_text_file(self, text):
+        self.text_data = ExerciseGenerator.text_to_dataset(text)
+
+    def from_text(self):
+        pass
+
+    #
+    # Text processing
+    #
 
     @staticmethod
     def split_blocks(block: str):
@@ -82,6 +101,23 @@ class ExerciseGenerator:
         doc = ExerciseGenerator._nlp(block)
 
         return [contractions.fix(sent.text.strip()) for sent in doc.sents]
+
+    @staticmethod
+    def text_to_dataset(text: str):
+        """
+        Returns dataset with text splitted into paragraphs (blocks) in first column
+        and length of each block in second one.
+        """
+        text = ExerciseGenerator.text_cleaning(text)
+        blocks = [block.strip() for block in text.split('\n') if block.strip()]
+        block_lengths = list(map(lambda x: len(ExerciseGenerator.split_blocks(x)), blocks))
+        text_data = pd.DataFrame(zip(blocks, block_lengths), columns=['block', 'block_length'])
+        text_data = ExerciseGenerator.explode_dataset(text_data)
+        text_data['part_of_word'] = text_data['line'].apply(ExerciseGenerator.add_part_of_word)
+        blocks_group = text_data.groupby('index')['line_length'].sum()
+        text_data['block_words'] = text_data['index'].map(blocks_group)
+
+        return text_data
 
     @staticmethod
     def explode_dataset(dataset):
@@ -107,21 +143,13 @@ class ExerciseGenerator:
         return str(part_of_word)
 
     @staticmethod
-    def text_to_dataset(text: str):
+    def text_cleaning(text):
         """
-        Returns dataset with text splitted into paragraphs (blocks) in first column
-        and length of each block in second one.
+        For the correct display in streamlit
         """
-        text = ExerciseGenerator.text_cleaning(text)
-        blocks = [block.strip() for block in text.split('\n') if block.strip()]
-        block_lengths = list(map(lambda x: len(ExerciseGenerator.split_blocks(x)), blocks))
-        text_data = pd.DataFrame(zip(blocks, block_lengths), columns=['block', 'block_length'])
-        text_data = ExerciseGenerator.explode_dataset(text_data)
-        text_data['part_of_word'] = text_data['line'].apply(ExerciseGenerator.add_part_of_word)
-        blocks_group = text_data.groupby('index')['line_length'].sum()
-        text_data['block_words'] = text_data['index'].map(blocks_group)
-
-        return text_data
+        text = text.encode('ascii', errors='ignore')
+        text = text.decode('utf-8')
+        return text
 
     #
     # Functions for picking sentences and blocks
@@ -323,21 +351,6 @@ class ExerciseGenerator:
     #
 
     @staticmethod
-    def shuffle(sentence):
-        right_ans = sentence.split()
-        shuffled = sentence.split()
-        while right_ans == shuffled:
-            random.shuffle(shuffled)
-        return right_ans, shuffled
-
-    @staticmethod
-    def translate(sentence):
-        return ts.translate_text(sentence,
-                                 translator='google',
-                                 from_language='en',
-                                 to_language='ru')
-
-    @staticmethod
     def target_word_selector(sentence, tag):
         target_words = [str(token) for token in ExerciseGenerator._nlp(sentence) if token.pos_ == tag]
         if target_words:
@@ -360,13 +373,20 @@ class ExerciseGenerator:
         response = requests.post(API_URL, headers=headers, json={"inputs": text})
         return response.content
 
-    def get_tags(self):
-        return self._tags.copy()
+    @staticmethod
+    def shuffle(sentence):
+        right_ans = sentence.split()
+        shuffled = sentence.split()
+        while right_ans == shuffled:
+            random.shuffle(shuffled)
+        return right_ans, shuffled
 
-    def set_tags(self, tags='all'):
-        if tags == 'all':
-            self._tags = ExerciseGenerator._all_tags.copy()
-        self._tags = tags
+    @staticmethod
+    def translate(sentence):
+        return ts.translate_text(sentence,
+                                 translator='google',
+                                 from_language='en',
+                                 to_language='ru')
 
     #
     # I/O functions
@@ -386,17 +406,6 @@ class ExerciseGenerator:
         for i in range(n_exercises):
             output.append(eval('self.' + self._exercises[types[i]]))
         return output
-
-    def from_path(self, source):
-        with open(source, 'rt') as file:
-            text = file.read()
-        self.text_data = ExerciseGenerator.text_to_dataset(text)
-
-    def from_text_file(self, text):
-        self.text_data = ExerciseGenerator.text_to_dataset(text)
-
-    def from_text(self):
-        pass
 
     def df_export(self):
         return self.text_data
