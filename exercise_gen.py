@@ -3,6 +3,7 @@ import random
 import re
 import requests
 
+from anyascii import anyascii
 import contractions
 import pandas as pd
 import spacy
@@ -40,6 +41,8 @@ class ExerciseGenerator:
     caused and kindly request your patience as we strive to provide a seamless
     and enhanced user experience. Thank you for your understanding and continued
     support.""".replace('\n', '')
+    # Remove digits at the beginings or at the end of word
+    _re_digits_remove = re.compile(r'\b\d+(?=[A-z])|(?<=[A-z])\d+\b')
 
     def __init__(self, vectors):
         self.word_vectors = vectors
@@ -147,8 +150,8 @@ class ExerciseGenerator:
         """
         For the correct display in streamlit
         """
-        text = text.encode('ascii', errors='ignore')
-        text = text.decode('utf-8')
+        text = anyascii(text)
+        text = ExerciseGenerator._re_digits_remove.sub('', text)
         return text
 
     #
