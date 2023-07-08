@@ -223,20 +223,22 @@ ex_types = {'question': ex_question,
 
 built_in_list = {'': '',
                  '----- A-level -----': '',
-                 'Atlas Shrugged (Ayn Rand)': 'texts/atlas_shrugged.csv',
                  'Charlie and the Chocolate Factory (Roald Dahl)': 'texts/charlie_and_the_chocolate_factory.csv',
-                 'To Kill a Mockingbird (Harper Lee)': '',
+                 'The Adventures of Tom Sawyer (Mark Twain)': 'texts/tom_sawyer.csv',
+                 'The Jungle Book (Rudyard Kipling)': 'texts/jungle_book.csv',
+                 'To Kill a Mockingbird (Harper Lee)': 'texts/to_kill_a_mockingbird.csv',
                  '----- B-level -----': '',
-                 'Brave New World (Aldous Huxley)': 'texts/brave_new_world.csv',
+                 'Atlas Shrugged (Ayn Rand)': 'texts/atlas_shrugged.csv',
                  'Harry Potter and the Philosopher\'s Stone (J.K. Rowling)': 'texts/harry_potter_1.csv',
-                 'To the Lighthouse (Virginia Woolf)': 'texts/to_the_lighthouse.csv',
+                 'The Grapes of Wrath (John Stainbeck)': 'texts/grapes_of_wrath.csv',
                  'The Godfather (Mario Puzo)': 'texts/the_godfather.csv',
                  'The Hobbit (J.R.R. Tolkien)': 'texts/the_hobbit.csv',
-                 'The Grapes of Wrath (John Stainbeck)': 'texts/grapes_of_wrath.csv',
+                 'To the Lighthouse (Virginia Woolf)': 'texts/to_the_lighthouse.csv',
+                 'Zen and the Art of Motorcycle Maintenance (Robert Pirsig)': 'texts/zen_and_the_art.csv'
                  '----- C-level -----': '',
                  'The Advetures of Sherloc Holmes (Arthur Conan Doyle)': 'texts/sherlock_holmes.csv',
-                 'Ulysses (James Joyce)': '',
-                 'Zen and the Art of Motorcycle Maintenance (Robert Pirsig)': 'texts/zen_and_the_art.csv'}
+                 'Brave New World (Aldous Huxley)': 'texts/brave_new_world.csv',
+                 'Ulysses (James Joyce)': 'texts/ulysses.csv'}
 
 
 #
@@ -441,11 +443,23 @@ gen_btn = st.button(['Generate it!',
 #
 
 if gen_btn:
-    st.session_state.tasks = generate_text(exgen,
+    while True:
+        try:
+            st.session_state.tasks = generate_text(exgen,
                                            st.session_state.upload,
                                            _n_exercises=n_exercises,
                                            _types=exercise_toggle_types,
                                            _randomized=randomized)
+            break
+
+        except KeyError:
+            st.text('Key error occured. Retrying to generate exercises...')
+            continue
+
+        except:
+            st.text('Unknown error occured')
+            break
+
     st.experimental_rerun()
 
 
