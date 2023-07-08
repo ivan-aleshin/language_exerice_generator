@@ -40,7 +40,7 @@ class ExerciseGenerator:
     tirelessly to rectify it promptly. We sincerely apologize for any disruption
     caused and kindly request your patience as we strive to provide a seamless
     and enhanced user experience. Thank you for your understanding and continued
-    support.""".replace('\n', '')
+    support."""
     # Remove digits at the beginings or at the end of word
     _re_digits_remove = re.compile(r'\b\d+(?=[A-z])|(?<=[A-z])\d+\b')
 
