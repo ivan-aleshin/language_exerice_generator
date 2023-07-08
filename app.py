@@ -234,7 +234,7 @@ built_in_list = {'': '',
                  'The Godfather (Mario Puzo)': 'texts/the_godfather.csv',
                  'The Hobbit (J.R.R. Tolkien)': 'texts/the_hobbit.csv',
                  'To the Lighthouse (Virginia Woolf)': 'texts/to_the_lighthouse.csv',
-                 'Zen and the Art of Motorcycle Maintenance (Robert Pirsig)': 'texts/zen_and_the_art.csv'
+                 'Zen and the Art of Motorcycle Maintenance (Robert Pirsig)': 'texts/zen_and_the_art.csv',
                  '----- C-level -----': '',
                  'The Advetures of Sherloc Holmes (Arthur Conan Doyle)': 'texts/sherlock_holmes.csv',
                  'Brave New World (Aldous Huxley)': 'texts/brave_new_world.csv',
