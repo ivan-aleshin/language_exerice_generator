@@ -2,13 +2,14 @@ import math
 import random
 import re
 import requests
+from itertools import permutations
 
-from anyascii import anyascii
 import contractions
 import pandas as pd
 import spacy
 import streamlit as st
 import translators as ts
+from anyascii import anyascii
 
 spacy.cli.download("en_core_web_md")
 
@@ -29,7 +30,8 @@ class ExerciseGenerator:
                   'missings_with_options': 'gen_missings(options=True)',
                   'missings_no_options': 'gen_missings(options=False)',
                   'audio_text_missings': 'gen_aud_text()',
-                  'part_of_word': 'gen_part_of_word()'}
+                  'part_of_word': 'gen_part_of_word()',
+                  'sentence_order': 'gen_sentence_order()'}
 
     _line_error_text = """Translation error caused confusion, due to inadvertent
     linguistic substitution, during the automated process.""".replace('\n', '')
@@ -348,6 +350,34 @@ class ExerciseGenerator:
                 sentence,
                 target_words,
                 sentence)
+
+    @_template_wrapper
+    def gen_sentence_order(self):
+        initial_sentence = self.choose_sentence(limits=(6, 15))
+        sentence = initial_sentence
+        sentence = sentence.replace('.', '')
+        sentence = sentence[0].lower() + sentence[1:]
+        sentence = sentence.split()
+        shuffle_range = random.randint(0, len(sentence) - 4)
+        sent_slice = sentence[shuffle_range: shuffle_range + 4]
+        sent_slices = list(permutations(sent_slice))[1:]
+        random.shuffle(sent_slices)
+        wrong_sents = [' '.join(sentence[: shuffle_range] + list(slice) + sentence[shuffle_range + 4:]) for slice in sent_slices]
+        wrong_sents = wrong_sents[:3]
+        wrong_sents = list(
+            map(lambda x: x[0].upper() + x[1:] + '.', wrong_sents)
+            )
+        options = [initial_sentence, *wrong_sents]
+
+        random.shuffle(options)
+        return ('sentence_order',
+                [
+                    'Choose the correct sentence',
+                    'Выберите правильно составленное предложение'
+                ],
+                initial_sentence,
+                options,
+                initial_sentence)
 
     #
     # Auxiliary functions for generative functions

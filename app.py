@@ -144,6 +144,13 @@ def ex_part_of_word(task, index):
     task['total'] = int(task['result'] == task['answer'])
 
 
+def ex_sentence_order(task, index):
+    task['result'] = st.radio('',
+                              (task['options']),
+                              key=index)
+    task['total'] = int(task['result'] == task['sentence'])
+
+
 #
 # Processing functions
 #
@@ -219,7 +226,8 @@ ex_types = {'question': ex_question,
             'missings_with_options': ex_missings_opt,
             'missings_no_options': ex_missings_nopt,
             'audio_text_missings': ex_autio_text_missings,
-            'part_of_word': ex_part_of_word}
+            'part_of_word': ex_part_of_word,
+            'sentence_order': ex_sentence_order}
 
 built_in_list = {'': '',
                  '----- A-level -----': '',
@@ -349,6 +357,10 @@ with st.sidebar:
                                     'Часть речи'][language],
                                    value=True)
 
+        sentence_order = st.checkbox(['Sentence order',
+                                      'Порядок слов'][language],
+                                     value=True)
+
         type_ex_switches = {'question': quest_ans,
                             'question_longread': quest_long,
                             'shuffle_with_translation': order_trans,
@@ -356,7 +368,8 @@ with st.sidebar:
                             'missings_with_options': missing_write,
                             'missings_no_options': missing_choose,
                             'audio_text_missings': audio_text_missings,
-                            'part_of_word': part_of_word}
+                            'part_of_word': part_of_word,
+                            'sentence_order': sentence_order}
 
         exercise_toggle_types = [item[0] for item in type_ex_switches.items() if item[1]]
         if not exercise_toggle_types:
