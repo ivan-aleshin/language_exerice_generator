@@ -11,7 +11,8 @@ from exercise_gen import ExerciseGenerator
 
 
 # Set size of text in app
-TEXT_SIZE = '#' * 5
+# TEXT_SIZE = '#' * 5
+TEXT_SIZE = ''
 TITLE = ''
 HUGGINGFACE_API_TOKEN = st.secrets['HUGGINGFACE_API_TOKEN']
 # Set models
@@ -50,25 +51,32 @@ def text_to_image(text, title=TITLE):
 #
 
 def ex_question(task, index):
-    st.markdown(f"{TEXT_SIZE} {(task['sentence'])}")
-    st.markdown(f"{TEXT_SIZE} {task['options']}")
+    st.markdown(f"""{TEXT_SIZE} {
+        ['Text:', 'Текст:'][language]
+    } {(task['sentence'])}""")
+    st.markdown(f"""{TEXT_SIZE} {
+        ['Question', 'Вопрос'][language]
+        } {task['options'][10:]}""")
     task['result'] = st.text_input('', key=index)
     task['total'] = int(task['result'] == task['answer'])
 
 
 def ex_question_longread(task, index):
-    st.markdown(f"{TEXT_SIZE} {'Text:'} {(task['sentence'][0])}")
-    st.markdown(f"{TEXT_SIZE} {(task['sentence'][1])}")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown(f"{TEXT_SIZE} {'Text:'} {(task['sentence'][0])}")
+        st.markdown(f"{TEXT_SIZE} {(task['sentence'][1])}")
+        task['result'] = st.selectbox('',
+                                      ['', *task['options']],
+                                      key=index)
+    with col2:
+        fig = text_to_image(task['sentence'][0])
+        try:
+            st.image(fig)
+        except:
+            st.text('Unable to load illustration')
 
-    fig = text_to_image(task['sentence'][0])
-    try:
-        st.image(fig)
-    except:
-        st.text('Unable to load illustration')
 
-    task['result'] = st.selectbox('',
-                                  ['', *task['options']],
-                                  key=index)
     task['total'] = int(task['result'] == task['answer'])
 
 
@@ -98,49 +106,50 @@ def ex_missings_nopt(task, index):
 
 def ex_autio_text_missings(task, index):
     st.audio(cached_audio_from_text(task['sentence'][0]))
-    sentence = task['sentence'][1]
-    sentence = st.markdown(sentence.format(
-        ans1 := st.selectbox("",
-                             (['___ 1 ___', *task['options'][0]]),
-                             key=(f'{index}a')),
-        ans2 := st.selectbox("",
-                             (['___ 2 ___', *task['options'][1]]),
-                             key=(f'{index}b')),
-        ans3 := st.selectbox("",
-                             (['___ 3 ___', *task['options'][2]]),
-                             key=(f'{index}c')))
-                           )
+    col1, col2 = st.columns(2)
+    with col2:
+        sentence = task['sentence'][1]
+        ans1 = st.selectbox("",
+                            (['___ 1 ___', *task['options'][0]]),
+                            key=(f'{index}a'))
+        ans2 = st.selectbox("",
+                            (['___ 2 ___', *task['options'][1]]),
+                            key=(f'{index}b'))
+        ans3 = st.selectbox("",
+                            (['___ 3 ___', *task['options'][2]]),
+                            key=(f'{index}c'))
+
+    with col1:
+        sentence = st.markdown(sentence.format(ans1, ans2, ans3))
 
     task['result'] = [ans1, ans2, ans3]
-    task['total'] = sum(
-        map(lambda a, r: round((int(a == r) / 3), 2),
-            task['answer'],
-            task['result'])
-            )
+    task['total'] = int(task['answer'] == task['result'])
 
 
 def ex_part_of_word(task, index):
-    sentence = task['sentence']
     tags = ExerciseGenerator._all_tags
-    ans1 = st.selectbox("",
-                       (['1', *tags]),
-                       key=(f'{index}a'))
-    ans2 = st.selectbox("",
-                       (['2', *tags]),
-                       key=(f'{index}b'))
-    ans3 = st.selectbox("",
-                       (['3', *tags]),
-                       key=(f'{index}c'))
-    ans4 = st.selectbox("",
-                       (['4', *tags]),
-                       key=(f'{index}d'))
-
-    ans_dict = {word: ans for word, ans in zip(
-        task['options'],
-        [f'{ans1}', f'{ans2}', f'{ans3}', f'{ans4}']
-    )}
-    task['result'] = [(el[0], ans_dict[el[0]]) if isinstance(el, tuple) else el for el in sentence]
-    annotated_text(task['result'])
+    sentence = task['sentence']
+    col1, col2 = st.columns(2)
+    with col2:
+        ans1 = st.selectbox("",
+                           (['1', *tags]),
+                           key=(f'{index}a'))
+        ans2 = st.selectbox("",
+                           (['2', *tags]),
+                           key=(f'{index}b'))
+        ans3 = st.selectbox("",
+                           (['3', *tags]),
+                           key=(f'{index}c'))
+        ans4 = st.selectbox("",
+                           (['4', *tags]),
+                           key=(f'{index}d'))
+    with col1:
+        ans_dict = {word: ans for word, ans in zip(
+            task['options'],
+            [f'{ans1}', f'{ans2}', f'{ans3}', f'{ans4}']
+        )}
+        task['result'] = [(el[0], ans_dict[el[0]]) if isinstance(el, tuple) else el for el in sentence]
+        annotated_text(task['result'])
     task['total'] = int(task['result'] == task['answer'])
 
 
@@ -532,7 +541,7 @@ if 'tasks' in st.session_state:
 # Total counter
 #
 
-total_scores = [float(task['total']) for task in tasks]
+total_scores = [int(task['total']) for task in tasks]
 total_sum = sum(total_scores)
 
 if st.button(['Submit for review',
