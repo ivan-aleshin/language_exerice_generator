@@ -151,6 +151,31 @@ def ex_sentence_order(task, index):
     task['total'] = int(task['result'] == task['sentence'])
 
 
+def ex_sentence_match(task, index):
+    df = pd.DataFrame(zip(task['sentence'],
+                          task['options'],
+                          task['answer']),
+                      columns=['begining',
+                               'end',
+                               'answer'])
+
+    task_table = st.data_editor(
+        df,
+        column_config={
+            "end": st.column_config.SelectboxColumn(
+                "end",
+                options=task['options'])},
+            column_order=['begining', 'end'],
+            disabled=['begining'],
+            hide_index=True,
+            use_container_width=True,
+            key=index
+            )
+
+    task['result'] = list(task_table['end'].values)
+    task['total'] = task['result'] == task['answer']
+
+
 #
 # Processing functions
 #
@@ -227,7 +252,8 @@ ex_types = {'question': ex_question,
             'missings_no_options': ex_missings_nopt,
             'audio_text_missings': ex_autio_text_missings,
             'part_of_word': ex_part_of_word,
-            'sentence_order': ex_sentence_order}
+            'sentence_order': ex_sentence_order,
+            'sentence_match': ex_sentence_match}
 
 built_in_list = {'': '',
                  '----- A-level -----': '',
@@ -361,6 +387,10 @@ with st.sidebar:
                                       'Порядок слов'][language],
                                      value=True)
 
+        sentence_match = st.checkbox(['Sentence match',
+                                      'Выбрать части предложения'][language],
+                                     value=True)
+
         type_ex_switches = {'question': quest_ans,
                             'question_longread': quest_long,
                             'shuffle_with_translation': order_trans,
@@ -369,7 +399,8 @@ with st.sidebar:
                             'missings_no_options': missing_choose,
                             'audio_text_missings': audio_text_missings,
                             'part_of_word': part_of_word,
-                            'sentence_order': sentence_order}
+                            'sentence_order': sentence_order,
+                            'sentence_match': sentence_match}
 
         exercise_toggle_types = [item[0] for item in type_ex_switches.items() if item[1]]
         if not exercise_toggle_types:
