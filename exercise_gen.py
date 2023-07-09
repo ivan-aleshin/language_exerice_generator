@@ -31,7 +31,8 @@ class ExerciseGenerator:
                   'missings_no_options': 'gen_missings(options=False)',
                   'audio_text_missings': 'gen_aud_text()',
                   'part_of_word': 'gen_part_of_word()',
-                  'sentence_order': 'gen_sentence_order()'}
+                  'sentence_order': 'gen_sentence_order()',
+                  'sentence_match': 'gen_sentence_match()'}
 
     _line_error_text = """Translation error caused confusion, due to inadvertent
     linguistic substitution, during the automated process.""".replace('\n', '')
@@ -378,6 +379,28 @@ class ExerciseGenerator:
                 initial_sentence,
                 options,
                 initial_sentence)
+
+    @_template_wrapper
+    def gen_sentence_match(self):
+        sents = [self.choose_sentence(limits=(10, 25)) for _ in range(4)]
+        sents_begin, sents_end = [], []
+
+        for sent in sents:
+            sent = sent.split()
+            split_range = ((len(sent)) // 2 - 3, (len(sent)) // 2 + 3)
+            split_index = random.randint(*split_range)
+            sents_begin.append(' '.join(sent[:split_index]))
+            sents_end.append(' '.join(sent[split_index:]))
+            sents_options = sents_end.copy()
+            random.shuffle(sents_options)
+        return ('sentence_match',
+                [
+                    'Pick the matching parts of the sentences',
+                    'Сопоставьте подходящие части предложений'
+                ],
+                sents_begin,
+                sents_options,
+                sents_end)
 
     #
     # Auxiliary functions for generative functions
