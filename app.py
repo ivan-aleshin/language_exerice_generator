@@ -66,9 +66,9 @@ def ex_question_longread(task, index):
     with col1:
         st.markdown(f"{TEXT_SIZE} {'Text:'} {(task['sentence'][0])}")
         st.markdown(f"{TEXT_SIZE} {(task['sentence'][1])}")
-        task['result'] = st.selectbox('',
-                                      ['', *task['options']],
-                                      key=index)
+        task['result'] = st.radio('',
+                                  task['options'],
+                                  key=index)
     with col2:
         fig = text_to_image(task['sentence'][0])
         try:
@@ -92,7 +92,9 @@ def ex_shuffle_not(task, index):
 
 def ex_missings_opt(task, index):
     st.markdown(f"{TEXT_SIZE} {(task['sentence'])}")
-    task['result'] = st.selectbox('', options=['', *task['options']], key=index)
+    task['result'] = st.radio('',
+                              options=task['options'],
+                              key=index)
     task['total'] = int(task['result'] == task['answer'])
 
 
