@@ -1,10 +1,10 @@
 import random
 import requests
+
 import pandas as pd
 import streamlit as st
 import gensim.downloader as api
 import spacy
-from streamlit_elements import elements, mui, html
 from annotated_text import annotated_text
 
 from exercise_gen import ExerciseGenerator
@@ -75,7 +75,6 @@ def ex_question_longread(task, index):
             st.image(fig)
         except:
             st.text('Unable to load illustration')
-
 
     task['total'] = int(task['result'] == task['answer'])
 
@@ -197,6 +196,12 @@ def word_vectors_preload():
 @st.cache_data
 def text_from_file(_exgen, text):
     _exgen.from_text_file(text.getvalue().decode("unicode_escape"))
+    return _exgen.df_export()
+
+
+@st.cache_data
+def insert_text(_exgen, text):
+    _exgen.from_text_file(text)
     return _exgen.df_export()
 
 
@@ -484,6 +489,11 @@ with tab_insert_text:
     gen_start_text_input = st.button(['Start text processing',
                                       'Начать обработку текста'][language],
                                       key='text_input')
+    if gen_start_text_input:
+        st.session_state.upload = insert_text(exgen, text_input)
+        gen_btn_disabled = False
+        TITLE = book_title
+
 
 gen_btn = st.button(['Generate it!',
                      'Генерировать упражнения'][language],

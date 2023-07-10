@@ -92,9 +92,6 @@ class ExerciseGenerator:
     def from_text_file(self, text):
         self.text_data = ExerciseGenerator.text_to_dataset(text)
 
-    def from_text(self):
-        pass
-
     #
     # Text processing
     #
