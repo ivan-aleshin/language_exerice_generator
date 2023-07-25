@@ -133,23 +133,26 @@ def ex_part_of_word(task, index):
     col1, col2 = st.columns(2)
     with col2:
         ans1 = st.selectbox("",
-                           (['1', *tags]),
-                           key=(f'{index}a'))
+                            (['1', *tags]),
+                            key=(f'{index}a'))
         ans2 = st.selectbox("",
-                           (['2', *tags]),
-                           key=(f'{index}b'))
+                            (['2', *tags]),
+                            key=(f'{index}b'))
         ans3 = st.selectbox("",
-                           (['3', *tags]),
-                           key=(f'{index}c'))
+                            (['3', *tags]),
+                            key=(f'{index}c'))
         ans4 = st.selectbox("",
-                           (['4', *tags]),
-                           key=(f'{index}d'))
+                            (['4', *tags]),
+                            key=(f'{index}d'))
     with col1:
         ans_dict = {word: ans for word, ans in zip(
             task['options'],
             [f'{ans1}', f'{ans2}', f'{ans3}', f'{ans4}']
         )}
-        task['result'] = [(el[0], ans_dict[el[0]]) if isinstance(el, tuple) else el for el in sentence]
+        task['result'] = [
+            (el[0], ans_dict[el[0]]) if isinstance(el, tuple)
+            else el for el in sentence
+            ]
         annotated_text(task['result'])
     task['total'] = int(task['result'] == task['answer'])
 
@@ -271,24 +274,25 @@ ex_types = {'question': ex_question,
             'sentence_order': ex_sentence_order,
             'sentence_match': ex_sentence_match}
 
-built_in_list = {'': '',
-                 '----- A-level -----': '',
-                 'Charlie and the Chocolate Factory (Roald Dahl)': 'texts/charlie_and_the_chocolate_factory.csv',
-                 'The Adventures of Tom Sawyer (Mark Twain)': 'texts/tom_sawyer.csv',
-                 'The Jungle Book (Rudyard Kipling)': 'texts/jungle_book.csv',
-                 'To Kill a Mockingbird (Harper Lee)': 'texts/to_kill_a_mockingbird.csv',
-                 '----- B-level -----': '',
-                 'Atlas Shrugged (Ayn Rand)': 'texts/atlas_shrugged.csv',
-                 'Harry Potter and the Philosopher\'s Stone (J.K. Rowling)': 'texts/harry_potter_1.csv',
-                 'The Grapes of Wrath (John Stainbeck)': 'texts/grapes_of_wrath.csv',
-                 'The Godfather (Mario Puzo)': 'texts/the_godfather.csv',
-                 'The Hobbit (J.R.R. Tolkien)': 'texts/the_hobbit.csv',
-                 'To the Lighthouse (Virginia Woolf)': 'texts/to_the_lighthouse.csv',
-                 'Zen and the Art of Motorcycle Maintenance (Robert Pirsig)': 'texts/zen_and_the_art.csv',
-                 '----- C-level -----': '',
-                 'The Advetures of Sherloc Holmes (Arthur Conan Doyle)': 'texts/sherlock_holmes.csv',
-                 'Brave New World (Aldous Huxley)': 'texts/brave_new_world.csv',
-                 'Ulysses (James Joyce)': 'texts/ulysses.csv'}
+built_in_list = {
+    '': '',
+    '----- A-level -----': '',
+    'Charlie and the Chocolate Factory (Roald Dahl)': 'texts/charlie_and_the_chocolate_factory.csv',
+    'The Adventures of Tom Sawyer (Mark Twain)': 'texts/tom_sawyer.csv',
+    'The Jungle Book (Rudyard Kipling)': 'texts/jungle_book.csv',
+    'To Kill a Mockingbird (Harper Lee)': 'texts/to_kill_a_mockingbird.csv',
+    '----- B-level -----': '',
+    'Atlas Shrugged (Ayn Rand)': 'texts/atlas_shrugged.csv',
+    'Harry Potter and the Philosopher\'s Stone (J.K. Rowling)': 'texts/harry_potter_1.csv',
+    'The Grapes of Wrath (John Stainbeck)': 'texts/grapes_of_wrath.csv',
+    'The Godfather (Mario Puzo)': 'texts/the_godfather.csv',
+    'The Hobbit (J.R.R. Tolkien)': 'texts/the_hobbit.csv',
+    'To the Lighthouse (Virginia Woolf)': 'texts/to_the_lighthouse.csv',
+    'Zen and the Art of Motorcycle Maintenance (Robert Pirsig)': 'texts/zen_and_the_art.csv',
+    '----- C-level -----': '',
+    'The Advetures of Sherloc Holmes (Arthur Conan Doyle)': 'texts/sherlock_holmes.csv',
+    'Brave New World (Aldous Huxley)': 'texts/brave_new_world.csv',
+    'Ulysses (James Joyce)': 'texts/ulysses.csv'}
 
 
 #
@@ -350,11 +354,15 @@ with st.sidebar:
         if verb:
             type_of_word.append('VERB')
 
-        adjective = st.checkbox(['Adjective', 'Прилагательное'][language], value=True)
+        adjective = st.checkbox(
+            ['Adjective', 'Прилагательное'][language],
+            value=True)
         if adjective:
             type_of_word.append('ADJ')
 
-        determinant = st.checkbox(['Determinant', 'Артикль'][language], value=True)
+        determinant = st.checkbox(
+            ['Determinant', 'Артикль'][language],
+            value=True)
         if determinant:
             type_of_word.append('DET')
 
@@ -391,9 +399,10 @@ with st.sidebar:
                                       'Выбрать пропущенное слово'][language],
                                      value=True)
 
-        audio_text_missings = st.checkbox(['Choose the missing word \n (Audio)',
-                                           'Выбрать пропущенное слово \n (Аудио)'][language],
-                                          value=True)
+        audio_text_missings = st.checkbox(
+            ['Choose the missing word \n (Audio)',
+             'Выбрать пропущенное слово \n (Аудио)'][language],
+            value=True)
 
         part_of_word = st.checkbox(['Part of word',
                                     'Часть речи'][language],
@@ -418,7 +427,9 @@ with st.sidebar:
                             'sentence_order': sentence_order,
                             'sentence_match': sentence_match}
 
-        exercise_toggle_types = [item[0] for item in type_ex_switches.items() if item[1]]
+        exercise_toggle_types = [
+            item[0] for item in type_ex_switches.items() if item[1]
+            ]
         if not exercise_toggle_types:
             exercise_toggle_types = list(ex_types.keys())
 
@@ -444,19 +455,21 @@ with tab_builtin:
     built_in_text = st.selectbox('', list(built_in_list.keys()))
 
     if ((not built_in_text) or
-        ('level' in built_in_text) or
-        (not built_in_list[built_in_text])):
+       ('level' in built_in_text) or
+       (not built_in_list[built_in_text])):
         builtin_load_btn_disabled = True
     else:
         builtin_load_btn_disabled = False
 
     builtin_load_btn = st.button(['Load text',
                                   'Загрузить тест'][language],
-                                  key='built_in',
-                                  disabled=builtin_load_btn_disabled)
+                                 key='built_in',
+                                 disabled=builtin_load_btn_disabled)
 
     if builtin_load_btn:
-        st.session_state.upload = exgen.import_from_csv(built_in_list[built_in_text])
+        st.session_state.upload = exgen.import_from_csv(
+            built_in_list[built_in_text]
+            )
         gen_btn_disabled = False
         TITLE = built_in_text
 
@@ -465,13 +478,15 @@ with tab_upload:
 
     upload_text_label = ['Upload your text file',
                          'Загрузите ваш текстовый фалй'][language]
-    st.write(['*Text must be NOT formatted txt type.',
-              '*Тест должен быть неотформатированным и меть расширение txt'][language])
+    st.write([
+        '*Text must be NOT formatted txt type.',
+        '*Тест должен быть неотформатированным и меть расширение txt'][language])
     st.markdown(f"{TEXT_SIZE} {upload_text_label}")
     uploaded_text = st.file_uploader('')
 
-    book_title = st.text_input(['Fill the title of book',
-                                'Укажите название книги \n (на английском)'][language])
+    book_title = st.text_input([
+        'Fill the title of book',
+        'Укажите название книги \n (на английском)'][language])
 
     uploadbtn = st.button(['Start text processing',
                            'Начать обработку текста'][language],
@@ -490,7 +505,7 @@ with tab_insert_text:
 
     gen_start_text_input = st.button(['Start text processing',
                                       'Начать обработку текста'][language],
-                                      key='text_input')
+                                     key='text_input')
     if gen_start_text_input:
         st.session_state.upload = insert_text(exgen, text_input)
         gen_btn_disabled = False
@@ -499,8 +514,8 @@ with tab_insert_text:
 
 gen_btn = st.button(['Generate it!',
                      'Генерировать упражнения'][language],
-                     key='gen_btn',
-                     disabled=gen_btn_disabled)
+                    key='gen_btn',
+                    disabled=gen_btn_disabled)
 
 
 #
@@ -510,11 +525,12 @@ gen_btn = st.button(['Generate it!',
 if gen_btn:
     while True:
         try:
-            st.session_state.tasks = generate_text(exgen,
-                                           st.session_state.upload,
-                                           _n_exercises=n_exercises,
-                                           _types=exercise_toggle_types,
-                                           _randomized=randomized)
+            st.session_state.tasks = generate_text(
+                exgen,
+                st.session_state.upload,
+                _n_exercises=n_exercises,
+                _types=exercise_toggle_types,
+                _randomized=randomized)
             break
 
         except KeyError:
@@ -558,40 +574,45 @@ total_sum = sum(total_scores)
 
 if st.button(['Submit for review',
               'Отправить задание'][language]):
+    if tasks:
+        st.subheader(f'{total_sum} / {len(tasks)}')
 
-    st.subheader(f'{total_sum} / {len(tasks)}')
+        if total_sum / len(tasks) >= 0.95:
+            st.success(['Perfect!',
+                        'Превосходно!'][language])
+            st.balloons()
 
-    if total_sum / len(tasks) >= 0.95:
-        st.success(['Perfect!',
-                    'Превосходно!'][language])
-        st.balloons()
+        elif total_sum / len(tasks) >= 0.85:
+            st.success(['Excellent!',
+                        'Отлично!'][language])
+            st.balloons()
 
-    elif total_sum / len(tasks) >= 0.85:
-        st.success(['Excellent!',
-                    'Отлично!'][language])
-        st.balloons()
+        elif total_sum / len(tasks) >= 0.70:
+            st.success(['Good!',
+                        'Хорошо!'][language])
+            st.balloons()
 
-    elif total_sum / len(tasks) >= 0.70:
-        st.success(['Good!',
-                    'Хорошо!'][language])
-        st.balloons()
+        elif total_sum / len(tasks) > 0.55:
+            st.success(['You did it!',
+                        'Вы справились!'][language])
+        else:
+            st.error(['Try one more time',
+                      'Попробуйте еще раз'][language])
 
-    elif total_sum / len(tasks) > 0.55:
-        st.success(['You did it!',
-                    'Вы справились!'][language])
+        # Display answers
+        with st.expander('', expanded=False):
+
+            ans_df = zip(map(lambda task: str(task['result']), tasks),
+                         map(lambda task: str(task['answer']), tasks),
+                         map(lambda task: (
+                             green_emoji() if task['result'] == task['answer']
+                             else red_emoji()), tasks))
+            answers = pd.DataFrame(ans_df,
+                                   index=range(1, n_exercises + 1))
+            answers.columns = [['Answer', 'Ответ'][language],
+                               ['Correct answer', 'Правильный ответ'][language],
+                               ['Result', 'Результат'][language]]
+            st.table(answers)
     else:
-        st.error(['Try one more time',
-                  'Попробуйте еще раз'][language])
-
-    # Display answers
-    with st.expander('', expanded=False):
-
-        ans_df = zip(map(lambda task: str(task['result']), tasks),
-                     map(lambda task: str(task['answer']), tasks),
-                     map(lambda task: (green_emoji() if task['result'] == task['answer'] else red_emoji()), tasks))
-        answers = pd.DataFrame(ans_df,
-                               index=range(1, n_exercises + 1))
-        answers.columns = [['Answer', 'Ответ'][language],
-                           ['Correct answer', 'Правильный ответ'][language],
-                           ['Result', 'Результат'][language]]
-        st.table(answers)
+        st.error(['No tasks generated yet',
+                  'Упражнения еще не сгенерированы'][language])
