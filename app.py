@@ -23,7 +23,7 @@ SPACY_MODEL = 'en_core_web_md'
 # Set page configuration
 st.set_page_config(
    page_title="ExGen App by Ivan Aleshin",
-   page_icon="📚",
+   page_icon="🇬🇧",
    layout="wide",
    initial_sidebar_state="expanded",)
 
