@@ -11,13 +11,13 @@ import streamlit as st
 import translators as ts
 from anyascii import anyascii
 
-spacy.cli.download("en_core_web_md")
+#spacy.cli.download("en_core_web_md")
 
 HUGGINGFACE_API_TOKEN = st.secrets['HUGGINGFACE_API_TOKEN']
 
 
 def spacy_load():
-    return spacy.load('en_core_web_md')
+    return spacy.load('exgen_model')
 
 
 class ExerciseGenerator:

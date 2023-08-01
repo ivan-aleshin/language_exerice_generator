@@ -17,7 +17,7 @@ TITLE = ''
 HUGGINGFACE_API_TOKEN = st.secrets['HUGGINGFACE_API_TOKEN']
 # Set models
 GENSIM_MODEL = "glove-wiki-gigaword-100"
-SPACY_MODEL = 'en_core_web_md'
+SPACY_MODEL = 'spacy/en_core_web_md-3.6.0'
 
 
 # Set page configuration
@@ -30,12 +30,7 @@ st.set_page_config(
 
 @st.cache_resource
 def spacy_load():
-    try:
-        nlp = spacy.load(SPACY_MODEL)
-    except OSError:
-        spacy.cli.download(SPACY_MODEL)
-        nlp = spacy.load(SPACY_MODEL)
-    return nlp
+    return spacy.load(SPACY_MODEL)
 
 
 @st.cache_resource
