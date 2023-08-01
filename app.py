@@ -30,7 +30,12 @@ st.set_page_config(
 
 @st.cache_resource
 def spacy_load():
-    return spacy.load(SPACY_MODEL)
+    try:
+        nlp = spacy.load(SPACY_MODEL)
+    except OSError:
+        spacy.cli.download(SPACY_MODEL)
+        nlp = spacy.load(SPACY_MODEL)
+    return nlp
 
 
 @st.cache_resource
